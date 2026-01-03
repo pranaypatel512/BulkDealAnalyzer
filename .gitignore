@@ -120,3 +120,8 @@ Thumbs.db
 local/
 
 
+
+# Gitleaks test files (contain fake secrets for testing)
+tests/test_secrets.py.example
+scripts/test_gitleaks.sh
+docs/TESTING_GITLEAKS.md
