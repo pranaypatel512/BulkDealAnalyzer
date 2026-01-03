@@ -1,11 +1,14 @@
-name: Security scan
+name: Security Scan
 
 on:
   pull_request:
-    branches: [ staging, main ]
+    branches: [ dev, staging, main ]
+  push:
+    branches: [ dev, staging, main ]
 
 jobs:
   secret-scan:
+    name: Secret Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +23,7 @@ jobs:
           args: --verbose --redact
           
   dependency-scan:
+    name: Dependency Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,25 +31,29 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '25'
           
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.14'
           
       - name: Run dependency scan (npm)
         run: |
           if [ -f package.json ]; then
             npm ci
-            npm audit --audit-level=high || true
+            npm audit --audit-level=high || exit 1
+          else
+            echo "No package.json found, skipping npm audit"
           fi
           
       - name: Run dependency scan (pip)
         run: |
           if [ -f backend/requirements.txt ]; then
             python -m pip install safety || true
-            safety check --file backend/requirements.txt || true
+            safety check --file backend/requirements.txt || exit 1
+          else
+            echo "No requirements.txt found, skipping safety check"
           fi
           
       - name: Snyk scan (optional)
@@ -53,5 +61,15 @@ jobs:
         run: |
           echo "SNYK_TOKEN present — run snyk"
           # Add snyk scan if token is available
+
+  # Combined security scan job for branch protection
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [secret-scan, dependency-scan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify security scans passed
+        run: echo "All security scans passed"
 
 
