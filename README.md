@@ -72,14 +72,38 @@ bulkdeal-analyzer/
 
 ## Documentation
 
-- [PREREQUISITES.md](PREREQUISITES.md) - Setup requirements
+- [PREREQUISITES.md](dev-doc/PREREQUISITES.md) - Setup requirements
 - [docs/decisions.md](docs/decisions.md) - Technical decisions
 - [RELEASE.md](RELEASE.md) - Release process
 - [SECURITY.md](SECURITY.md) - Security policies
 
 ## Development
 
-See [PREREQUISITES.md](PREREQUISITES.md) for development setup.
+### Getting Started
+
+1. **Check Prerequisites**: `./scripts/check_env.sh`
+2. **Bootstrap Environment**: `./scripts/bootstrap.sh`
+3. **Start Development**: See [DEVELOPMENT_READY.md](dev-doc/DEVELOPMENT_READY.md)
+
+### Development Workflow
+
+- **Main Branch**: Production-ready code (tagged v0.1.0-sprint0)
+- **Dev Branch**: Integration branch for features
+- **Feature Branches**: Create from `dev` for new features
+
+See [DEVELOPMENT_WORKFLOW.md](.github/DEVELOPMENT_WORKFLOW.md) for detailed workflow.
+
+### Quick Start
+
+```bash
+# Switch to dev branch
+git checkout dev
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+
+# Start developing!
+```
 
 ## License
 
