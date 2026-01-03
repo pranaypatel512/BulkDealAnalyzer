@@ -13,6 +13,7 @@ This document lists machine, account, and project-level prerequisites that must 
 - **supabase CLI** (pin version in TOOL_VERSIONS)
 - **jq**, **curl**
 - **prek** (pre-commit hook manager - single binary)
+- **gitleaks** (secret scanning - install from https://github.com/gitleaks/gitleaks)
 
 ## Environment Files
 

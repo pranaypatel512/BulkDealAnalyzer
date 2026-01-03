@@ -15,12 +15,19 @@ else
     echo "✅ No .env files found"
 fi
 
-# Check for secrets in code (basic check)
-if grep -r "password.*=" --include="*.py" --include="*.js" --include="*.ts" . 2>/dev/null | grep -v "#" | grep -v "password.*=" | grep -v "test" | grep -q .; then
-    echo "⚠️  WARNING: Potential password assignments found (review manually)"
-    grep -r "password.*=" --include="*.py" --include="*.js" --include="*.ts" . 2>/dev/null | grep -v "#" | head -5
+# Check for secrets using gitleaks
+if command -v gitleaks >/dev/null 2>&1; then
+    echo ""
+    echo "Running gitleaks secret scan..."
+    if gitleaks detect --source . --verbose --no-git 2>&1 | grep -q "No leaks found"; then
+        echo "✅ gitleaks: No secrets found"
+    else
+        echo "⚠️  gitleaks: Potential secrets detected (review output above)"
+        gitleaks detect --source . --verbose --no-git 2>&1 | head -10
+    fi
 else
-    echo "✅ No obvious password assignments found"
+    echo "⚠️  gitleaks not installed - skipping secret scan"
+    echo "   Install: https://github.com/gitleaks/gitleaks#installation"
 fi
 
 # Check Python syntax
