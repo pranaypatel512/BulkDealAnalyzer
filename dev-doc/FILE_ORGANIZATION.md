@@ -10,18 +10,23 @@ Essential project files that should remain in root:
 - `SECURITY.md` - Security policies
 
 ### dev-doc/ Directory
-Development and task-related documentation:
-- Task checklists and notes
-- Setup guides and prerequisites
-- Internal development documentation
-- Sprint and commit documentation
-- Tool configuration guides
+**AI-generated task documentation ONLY:**
+- Files created when resolving/performing tasks
+- Task checklists generated during work
+- Sprint notes created during sprints
+- Internal task notes
+- Repository setup notes
+- **NOT for user/API documentation**
 
 ### docs/ Directory
-User-facing and API documentation (to be created):
+**User-facing and project documentation:**
 - API documentation
 - User guides
 - Architecture documentation
+- Database schemas
+- Technical decisions
+- Tool setup guides (for end users)
+- Tutorials
 
 ## Rules for Creating .md Files
 

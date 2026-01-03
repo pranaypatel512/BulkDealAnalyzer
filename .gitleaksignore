@@ -1,18 +1,6 @@
 # Gitleaks ignore file
 # Files and patterns to ignore during secret scanning
+# Note: This file format may vary by gitleaks version
 
 # Test files with fake secrets (for testing gitleaks)
 tests/test_secrets.py.example
-**/test_secrets.py
-**/*test*secret*.py
-**/*test*secret*.js
-**/*test*secret*.ts
-
-# Example/template files
-templates/env.example
-**/*.example
-**/*.template
-
-# Documentation files that may contain example secrets
-docs/TESTING_GITLEAKS.md
-
