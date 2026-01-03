@@ -57,18 +57,37 @@ To ensure status check contexts match job IDs (for branch protection):
 - **Status check contexts:** Job IDs (no `name` fields on jobs) ✅
 
 ### Security Scan Workflow
-- **Workflow name:** `security-scan` (matches job ID pattern)
-- **Job IDs:** `secret-scan`, `dependency-scan`, `security-scan`
+- **Workflow name:** `Security Scan` (descriptive, doesn't match job IDs)
+- **Job IDs:** `security-secret-scan`, `security-dependency-scan`, `security-scan`
 - **Status check contexts:** Job IDs (no `name` fields on jobs) ✅
 
-## Why Workflow Name Matters (Sometimes)
+## Why Workflow Name Matters
 
-In some cases, GitHub may use the workflow name in status check contexts:
-- When workflow name matches job ID pattern
-- When there's ambiguity
-- In certain GitHub UI displays
+**IMPORTANT:** When a workflow name exactly matches a job ID, GitHub creates status check contexts as `{workflow_name} / {job_id} (event)` instead of just `{job_id}`.
 
-**Solution:** Use lowercase, hyphenated workflow names that match job ID patterns for consistency.
+**Example of the Problem:**
+```yaml
+name: security-scan  # ❌ Matches job ID
+
+jobs:
+  security-scan:  # Same name!
+    runs-on: ubuntu-latest
+```
+
+**Result:** Status check context = `security-scan / security-scan (pull_request)`  
+**Branch Protection Expects:** `security-scan`  
+**Outcome:** Status check shows as "waiting" even though job passed ✅
+
+**Solution:** Use descriptive workflow names that **don't match any job ID**:
+```yaml
+name: Security Scan  # ✅ Descriptive, doesn't match job IDs
+
+jobs:
+  security-scan:  # Different from workflow name
+    runs-on: ubuntu-latest
+```
+
+**Result:** Status check context = `security-scan` (just the job ID) ✅
 
 ## Verification
 
