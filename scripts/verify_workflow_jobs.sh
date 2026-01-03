@@ -2,6 +2,7 @@
 
 # Verify Workflow Job IDs Match Branch Protection Rules
 # This script ensures workflow job IDs match what's configured in branch protection
+# Also verifies that jobs don't have 'name' fields (which would change status check context)
 
 set -e
 
@@ -19,8 +20,16 @@ echo ""
 echo -e "${YELLOW}📋 Extracting job IDs from workflows...${NC}"
 echo ""
 
-SECURITY_SCAN_JOBS=$(grep -E "^  [a-z-]+:" .github/workflows/security-scan.yml | grep -v "^  on:" | sed 's/:$//' | sed 's/^  //' | grep -v "^push$" | sort)
-TESTS_JOBS=$(grep -E "^  [a-z-]+:" .github/workflows/tests.yml | grep -v "^  on:" | sed 's/:$//' | sed 's/^  //' | grep -v "^push$" | sort)
+# Extract job IDs: lines that match job pattern, exclude workflow triggers
+SECURITY_SCAN_JOBS=$(grep -E "^  [a-z-]+:" .github/workflows/security-scan.yml | \
+    sed 's/:$//' | sed 's/^  //' | \
+    grep -v "^on$" | grep -v "^push$" | grep -v "^pull_request$" | grep -v "^branches$" | \
+    sort)
+
+TESTS_JOBS=$(grep -E "^  [a-z-]+:" .github/workflows/tests.yml | \
+    sed 's/:$//' | sed 's/^  //' | \
+    grep -v "^on$" | grep -v "^push$" | grep -v "^pull_request$" | grep -v "^branches$" | \
+    sort)
 
 echo -e "${GREEN}Security Scan Workflow Jobs:${NC}"
 echo "$SECURITY_SCAN_JOBS" | sed 's/^/  - /'
@@ -84,20 +93,90 @@ done
 
 echo ""
 
+# Check for jobs with 'name' fields (which would break status check matching)
+echo -e "${YELLOW}📋 Checking for jobs with 'name' fields (should be removed)...${NC}"
+echo ""
+
+NAME_ERRORS=0
+
+# Function to check if a job has a name field
+check_job_has_name() {
+    local workflow_file=$1
+    local job_id=$2
+    
+    # Check if job has a 'name:' field on the line after the job ID
+    if awk "/^  ${job_id}:/{getline; if (/\s+name:/) exit 0; else exit 1}" "$workflow_file" 2>/dev/null; then
+        return 0  # Has name field
+    else
+        return 1  # No name field
+    fi
+}
+
+# Check each required job
+for job in $ALL_REQUIRED_CHECKS; do
+    HAS_NAME=false
+    
+    # Check in security-scan workflow
+    if grep -q "^  ${job}:" .github/workflows/security-scan.yml; then
+        if check_job_has_name ".github/workflows/security-scan.yml" "$job"; then
+            HAS_NAME=true
+        fi
+    fi
+    
+    # Check in tests workflow
+    if grep -q "^  ${job}:" .github/workflows/tests.yml; then
+        if check_job_has_name ".github/workflows/tests.yml" "$job"; then
+            HAS_NAME=true
+        fi
+    fi
+    
+    if [ "$HAS_NAME" = true ]; then
+        echo -e "${RED}❌ ${job} has 'name' field - this will break status check matching!${NC}"
+        echo -e "   Status check will be '{workflow} / {name} (event)' instead of '${job}'"
+        NAME_ERRORS=$((NAME_ERRORS + 1))
+    else
+        echo -e "${GREEN}✅ ${job} has no 'name' field${NC}"
+    fi
+done
+
+if [ $NAME_ERRORS -eq 0 ]; then
+    echo ""
+    echo -e "${GREEN}✅ All required jobs correctly configured (no 'name' fields)${NC}"
+fi
+
+echo ""
+
 # Summary
-if [ $ERRORS -eq 0 ]; then
+TOTAL_ERRORS=$((ERRORS + NAME_ERRORS))
+
+if [ $TOTAL_ERRORS -eq 0 ]; then
     echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║                    ✅ Verification Passed!                            ║${NC}"
     echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo "All required checks match workflow job IDs."
+    echo "✅ All required checks match workflow job IDs"
+    echo "✅ No required jobs have 'name' fields"
+    echo ""
+    echo "Status check contexts will be:"
+    echo "  - backend-lint"
+    echo "  - backend-test"
+    echo "  - backend-integration-test"
+    echo "  - test"
+    echo "  - security-scan"
     exit 0
 else
     echo -e "${RED}╔══════════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${RED}║                    ❌ Verification Failed!                            ║${NC}"
     echo -e "${RED}╚══════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo "Found $ERRORS mismatch(es). Please update branch protection rules."
+    if [ $ERRORS -gt 0 ]; then
+        echo "❌ Found $ERRORS job ID mismatch(es)"
+    fi
+    if [ $NAME_ERRORS -gt 0 ]; then
+        echo "❌ Found $NAME_ERRORS job(s) with 'name' fields that should be removed"
+    fi
+    echo ""
+    echo "Please fix the issues above and run verification again."
     exit 1
 fi
 
