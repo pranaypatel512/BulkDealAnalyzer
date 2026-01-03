@@ -5,11 +5,11 @@ This document lists machine, account, and project-level prerequisites that must 
 ## Required Developer Tools (Minimum Supported Versions)
 
 - **git** >= 2.34
-- **node** >= 18.x (use .nvmrc to pin)
-- **npm** or **pnpm**
-- **python** >= 3.10
+- **node** >= 18.x (v20 LTS or higher recommended, use .nvmrc to pin)
+- **npm** >= 10.x (11.x recommended)
+- **python** >= 3.10 (3.11+ or 3.12+ recommended for better performance)
 - **docker** >= 20.10
-- **docker-compose** >= 1.29
+- **docker-compose** >= 1.29 or Docker Compose v2.x
 - **supabase CLI** (pin version in TOOL_VERSIONS)
 - **jq**, **curl**
 - **prek** (pre-commit hook manager - single binary)
