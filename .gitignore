@@ -84,6 +84,9 @@ htmlcov/
 secrets/
 .secrets.baseline
 
+# Test files with fake secrets (for gitleaks testing)
+# Note: test_secrets.py.example is committed but should be ignored by gitleaks
+
 # Database
 *.db
 *.sqlite
