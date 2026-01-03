@@ -113,7 +113,9 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/tests.yml'))"
 
 1. **Job IDs vs Display Names:**
    - Branch protection uses **job IDs** (e.g., `backend-lint`)
-   - Display names (e.g., "Backend Lint") are for UI only
+   - Jobs do NOT have `name` fields to ensure status check contexts match job IDs
+   - When a job has a `name` field, GitHub creates status checks as `{workflow} / {name} (event)`
+   - Without `name`, status checks use just the job ID, matching branch protection requirements
 
 2. **Aggregate Jobs:**
    - Always use `if: always()` to run even if dependencies fail
