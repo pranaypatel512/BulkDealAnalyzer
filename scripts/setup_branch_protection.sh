@@ -128,28 +128,33 @@ echo ""
 # 
 # IMPORTANT: These must match the actual job IDs (not display names) from .github/workflows/
 # 
-# Job IDs in workflows:
-#   Security Scan: secret-scan, dependency-scan, security-scan (aggregate)
-#   Tests: backend-lint, backend-test, backend-integration-test, test (aggregate)
+# Job IDs in workflows (NEW NAMING - clear and identifiable):
+#   CI Tests: ci-backend-lint, ci-backend-test, ci-backend-integration-test, ci-test (aggregate)
+#   Security Scan: security-secret-scan, security-dependency-scan, security-scan (aggregate)
+# 
+# Naming Convention:
+#   - ci-* prefix for CI Tests workflow jobs
+#   - security-* prefix for Security Scan workflow jobs
+#   - Aggregate jobs: ci-test, security-scan
 # 
 # Strategy: Require both individual jobs AND aggregate jobs for:
 #   - Individual jobs: Provide immediate feedback and granular control
 #   - Aggregate jobs: Verify overall status and handle dependency logic
 # 
-# Note: We don't require secret-scan or dependency-scan individually because
+# Note: We don't require security-secret-scan or security-dependency-scan individually because
 #       security-scan (aggregate) already verifies their results.
 
 # Dev branch checks (basic validation)
-# Required: backend-lint, backend-test, test (aggregate), security-scan (aggregate)
-DEV_CHECKS="backend-lint,backend-test,test,security-scan"
+# Required: ci-backend-lint, ci-backend-test, ci-test (aggregate), security-scan (aggregate)
+DEV_CHECKS="ci-backend-lint,ci-backend-test,ci-test,security-scan"
 
 # Staging branch checks (includes integration tests)
-# Required: backend-lint, backend-test, backend-integration-test, test (aggregate), security-scan (aggregate)
-STAGING_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
+# Required: ci-backend-lint, ci-backend-test, ci-backend-integration-test, ci-test (aggregate), security-scan (aggregate)
+STAGING_CHECKS="ci-backend-lint,ci-backend-test,ci-backend-integration-test,ci-test,security-scan"
 
 # Main branch checks (full validation including integration tests)
-# Required: backend-lint, backend-test, backend-integration-test, test (aggregate), security-scan (aggregate)
-MAIN_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
+# Required: ci-backend-lint, ci-backend-test, ci-backend-integration-test, ci-test (aggregate), security-scan (aggregate)
+MAIN_CHECKS="ci-backend-lint,ci-backend-test,ci-backend-integration-test,ci-test,security-scan"
 
 echo "Setting up branch protection rules..."
 echo ""
@@ -178,11 +183,11 @@ echo "  ✅ dev:     1 approval,  checks: ${DEV_CHECKS}"
 echo "  ✅ staging: 1 approval,  checks: ${STAGING_CHECKS}"
 echo ""
 echo "Required Status Checks:"
-echo "  - backend-lint: Backend code linting (Ruff)"
-echo "  - backend-test: Backend unit tests (Pytest)"
-echo "  - backend-integration-test: Backend integration tests (staging/main only)"
-echo "  - test: Combined test status check"
-echo "  - security-scan: Secret and dependency scanning"
+echo "  - ci-backend-lint: Backend code linting (Ruff)"
+echo "  - ci-backend-test: Backend unit tests (Pytest)"
+echo "  - ci-backend-integration-test: Backend integration tests (staging/main only)"
+echo "  - ci-test: Combined test status check (aggregate)"
+echo "  - security-scan: Secret and dependency scanning (aggregate)"
 echo ""
 echo "Next steps:"
 echo "  1. Verify protection rules: https://github.com/${REPO_FULL}/settings/branches"

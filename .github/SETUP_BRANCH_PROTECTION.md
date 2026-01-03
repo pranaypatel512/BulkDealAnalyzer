@@ -32,10 +32,10 @@ gh auth login
    - ✅ **Require status checks to pass before merging**
      - ✅ Require branches to be up to date before merging
      - Select required checks:
-       - `backend-lint`
-       - `backend-test`
+       - `ci-backend-lint`
+       - `ci-backend-test`
+       - `ci-test`
        - `security-scan`
-       - `test`
    - ✅ **Require conversation resolution before merging**
    - ✅ **Require linear history**
    - ✅ **Include administrators**
@@ -56,10 +56,10 @@ gh auth login
    - ✅ **Require status checks to pass before merging**
      - ✅ Require branches to be up to date before merging
      - Select required checks:
-       - `backend-lint`
-       - `backend-test`
+       - `ci-backend-lint`
+       - `ci-backend-test`
+       - `ci-test`
        - `security-scan`
-       - `test`
    - ✅ **Require conversation resolution before merging**
    - ✅ **Include administrators**
    - ❌ **Do not allow force pushes**
@@ -76,11 +76,11 @@ gh auth login
    - ✅ **Require status checks to pass before merging**
      - ✅ Require branches to be up to date before merging
      - Select required checks:
-       - `backend-lint`
-       - `backend-test`
-       - `backend-integration-test`
+       - `ci-backend-lint`
+       - `ci-backend-test`
+       - `ci-backend-integration-test`
+       - `ci-test`
        - `security-scan`
-       - `test`
    - ✅ **Require conversation resolution before merging**
    - ✅ **Include administrators**
    - ❌ **Do not allow force pushes**
@@ -119,24 +119,24 @@ git push origin test/pr-workflow
 The following status checks must pass before merging:
 
 ### For `dev` branch:
-- `backend-lint` - Backend code linting
-- `backend-test` - Backend unit tests
-- `security-scan` - Secret and dependency scanning
-- `test` - Combined test status
+- `ci-backend-lint` - Backend code linting
+- `ci-backend-test` - Backend unit tests
+- `ci-test` - Combined test status (aggregate)
+- `security-scan` - Secret and dependency scanning (aggregate)
 
 ### For `staging` branch:
-- `backend-lint` - Backend code linting
-- `backend-test` - Backend unit tests
-- `backend-integration-test` - Backend integration tests
-- `security-scan` - Secret and dependency scanning
-- `test` - Combined test status
+- `ci-backend-lint` - Backend code linting
+- `ci-backend-test` - Backend unit tests
+- `ci-backend-integration-test` - Backend integration tests
+- `ci-test` - Combined test status (aggregate)
+- `security-scan` - Secret and dependency scanning (aggregate)
 
 ### For `main` branch:
-- `backend-lint` - Backend code linting
-- `backend-test` - Backend unit tests
-- `backend-integration-test` - Backend integration tests
-- `security-scan` - Secret and dependency scanning
-- `test` - Combined test status
+- `ci-backend-lint` - Backend code linting
+- `ci-backend-test` - Backend unit tests
+- `ci-backend-integration-test` - Backend integration tests
+- `ci-test` - Combined test status (aggregate)
+- `security-scan` - Secret and dependency scanning (aggregate)
 
 **Note**: These checks will appear after the first PR is created and CI workflows run.
 

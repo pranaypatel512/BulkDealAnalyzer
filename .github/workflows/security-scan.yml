@@ -7,7 +7,7 @@ on:
     branches: [ dev, staging, main ]
 
 jobs:
-  secret-scan:
+  security-secret-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
         with:
           args: --verbose --redact
           
-  dependency-scan:
+  security-dependency-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,28 +80,28 @@ jobs:
           exit 0
 
   # Combined security scan job for branch protection
-  # This job aggregates secret-scan and dependency-scan results
+  # This job aggregates security-secret-scan and security-dependency-scan results
   security-scan:
     runs-on: ubuntu-latest
-    needs: [secret-scan, dependency-scan]
+    needs: [security-secret-scan, security-dependency-scan]
     if: always()
     steps:
       - uses: actions/checkout@v4
       - name: Verify security scans passed
         run: |
           echo "Checking required security scan jobs..."
-          echo "secret-scan result: ${{ needs.secret-scan.result }}"
-          echo "dependency-scan result: ${{ needs.dependency-scan.result }}"
+          echo "security-secret-scan result: ${{ needs.security-secret-scan.result }}"
+          echo "security-dependency-scan result: ${{ needs.security-dependency-scan.result }}"
           
-          # secret-scan must succeed
-          if [ "${{ needs.secret-scan.result }}" != "success" ]; then
-            echo "❌ secret-scan failed or was cancelled"
+          # security-secret-scan must succeed
+          if [ "${{ needs.security-secret-scan.result }}" != "success" ]; then
+            echo "❌ security-secret-scan failed or was cancelled"
             exit 1
           fi
           
-          # dependency-scan can be skipped (no dependencies), but shouldn't fail
-          if [ "${{ needs.dependency-scan.result }}" == "failure" ]; then
-            echo "❌ dependency-scan failed"
+          # security-dependency-scan can be skipped (no dependencies), but shouldn't fail
+          if [ "${{ needs.security-dependency-scan.result }}" == "failure" ]; then
+            echo "❌ security-dependency-scan failed"
             exit 1
           fi
           

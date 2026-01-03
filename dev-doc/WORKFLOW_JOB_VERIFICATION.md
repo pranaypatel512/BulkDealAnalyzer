@@ -4,33 +4,33 @@
 
 ### Security Scan Workflow (`.github/workflows/security-scan.yml`)
 
-| Job ID | Display Name | Type | Status |
-|--------|--------------|------|--------|
-| `secret-scan` | Secret Scan | Individual | ✅ Active |
-| `dependency-scan` | Dependency Scan | Individual | ✅ Active |
-| `security-scan` | Security Scan | Aggregate | ✅ Active |
+| Job ID | Type | Status |
+|--------|------|--------|
+| `security-secret-scan` | Individual | ✅ Active |
+| `security-dependency-scan` | Individual | ✅ Active |
+| `security-scan` | Aggregate | ✅ Active |
 
 **Aggregate Job Logic:**
-- `security-scan` depends on: `secret-scan`, `dependency-scan`
-- Requires: `secret-scan` must succeed
-- Allows: `dependency-scan` can be skipped (no dependencies found)
+- `security-scan` depends on: `security-secret-scan`, `security-dependency-scan`
+- Requires: `security-secret-scan` must succeed
+- Allows: `security-dependency-scan` can be skipped (no dependencies found)
 
 ### Tests Workflow (`.github/workflows/tests.yml`)
 
-| Job ID | Display Name | Type | Status |
-|--------|--------------|------|--------|
-| `backend-lint` | Backend Lint | Individual | ✅ Active |
-| `backend-test` | Backend Tests | Individual | ✅ Active |
-| `backend-integration-test` | Backend Integration Tests | Individual | ✅ Active |
-| `frontend-lint` | Frontend Lint | Individual | ⏸️ Disabled (`if: false`) |
-| `frontend-test` | Frontend Tests | Individual | ⏸️ Disabled (`if: false`) |
-| `frontend-build` | Frontend Build | Individual | ⏸️ Disabled (`if: false`) |
-| `test` | Test | Aggregate | ✅ Active |
+| Job ID | Type | Status |
+|--------|------|--------|
+| `ci-backend-lint` | Individual | ✅ Active |
+| `ci-backend-test` | Individual | ✅ Active |
+| `ci-backend-integration-test` | Individual | ✅ Active |
+| `frontend-lint` | Individual | ⏸️ Disabled (`if: false`) |
+| `frontend-test` | Individual | ⏸️ Disabled (`if: false`) |
+| `frontend-build` | Individual | ⏸️ Disabled (`if: false`) |
+| `ci-test` | Aggregate | ✅ Active |
 
 **Aggregate Job Logic:**
-- `test` depends on: `backend-lint`, `backend-test`, `backend-integration-test`
-- Requires: `backend-lint` and `backend-test` must succeed
-- Allows: `backend-integration-test` can be skipped (no integration tests found)
+- `ci-test` depends on: `ci-backend-lint`, `ci-backend-test`, `ci-backend-integration-test`
+- Requires: `ci-backend-lint` and `ci-backend-test` must succeed
+- Allows: `ci-backend-integration-test` can be skipped (no integration tests found)
 
 ## Branch Protection Strategy
 
@@ -60,9 +60,9 @@
 - Potential for "waiting" state if aggregate job waits for dependencies
 
 **Current Configuration:**
-- `dev`: `backend-lint`, `backend-test`, `test`, `security-scan`
-- `staging`: `backend-lint`, `backend-test`, `backend-integration-test`, `test`, `security-scan`
-- `main`: `backend-lint`, `backend-test`, `backend-integration-test`, `test`, `security-scan`
+- `dev`: `ci-backend-lint`, `ci-backend-test`, `ci-test`, `security-scan`
+- `staging`: `ci-backend-lint`, `ci-backend-test`, `ci-backend-integration-test`, `ci-test`, `security-scan`
+- `main`: `ci-backend-lint`, `ci-backend-test`, `ci-backend-integration-test`, `ci-test`, `security-scan`
 
 ### Option 3: Require Individual Jobs Only (Not Recommended)
 **Pros:**
@@ -76,23 +76,23 @@
 ## Recommended Configuration
 
 **For `dev` branch:**
-- `backend-lint` (required)
-- `backend-test` (required)
-- `test` (aggregate - verifies all test jobs)
+- `ci-backend-lint` (required)
+- `ci-backend-test` (required)
+- `ci-test` (aggregate - verifies all test jobs)
 - `security-scan` (aggregate - verifies all security jobs)
 
 **For `staging` branch:**
-- `backend-lint` (required)
-- `backend-test` (required)
-- `backend-integration-test` (required - explicit for staging)
-- `test` (aggregate - verifies all test jobs)
+- `ci-backend-lint` (required)
+- `ci-backend-test` (required)
+- `ci-backend-integration-test` (required - explicit for staging)
+- `ci-test` (aggregate - verifies all test jobs)
 - `security-scan` (aggregate - verifies all security jobs)
 
 **For `main` branch:**
-- `backend-lint` (required)
-- `backend-test` (required)
-- `backend-integration-test` (required - explicit for main)
-- `test` (aggregate - verifies all test jobs)
+- `ci-backend-lint` (required)
+- `ci-backend-test` (required)
+- `ci-backend-integration-test` (required - explicit for main)
+- `ci-test` (aggregate - verifies all test jobs)
 - `security-scan` (aggregate - verifies all security jobs)
 
 ## Verification Commands
@@ -112,10 +112,11 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/tests.yml'))"
 ## Notes
 
 1. **Job IDs vs Display Names:**
-   - Branch protection uses **job IDs** (e.g., `backend-lint`)
+   - Branch protection uses **job IDs** (e.g., `ci-backend-lint`)
    - Jobs do NOT have `name` fields to ensure status check contexts match job IDs
    - When a job has a `name` field, GitHub creates status checks as `{workflow} / {name} (event)`
    - Without `name`, status checks use just the job ID, matching branch protection requirements
+   - **Naming Convention**: `ci-*` prefix for CI Tests, `security-*` prefix for Security Scan
 
 2. **Aggregate Jobs:**
    - Always use `if: always()` to run even if dependencies fail

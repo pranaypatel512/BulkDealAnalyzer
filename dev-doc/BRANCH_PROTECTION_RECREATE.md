@@ -70,23 +70,23 @@ gh api -X DELETE repos/pranaypatel512/BulkDealAnalyzer/branches/staging/protecti
 ## Current Job IDs (Status Check Contexts)
 
 ### Tests Workflow (`CI Tests`)
-- `backend-lint` - Backend linting
-- `backend-test` - Backend unit tests
-- `backend-integration-test` - Backend integration tests
-- `test` - Aggregate job
+- `ci-backend-lint` - Backend linting
+- `ci-backend-test` - Backend unit tests
+- `ci-backend-integration-test` - Backend integration tests
+- `ci-test` - Aggregate job
 
-### Security Scan Workflow (`Security Scan`)
-- `secret-scan` - Secret scanning (gitleaks)
-- `dependency-scan` - Dependency scanning
+### Security Scan Workflow (`security-scan`)
+- `security-secret-scan` - Secret scanning (gitleaks)
+- `security-dependency-scan` - Dependency scanning
 - `security-scan` - Aggregate job
 
 ## Branch Protection Configuration
 
 ### `dev` Branch
 **Required Checks:**
-- `backend-lint`
-- `backend-test`
-- `test`
+- `ci-backend-lint`
+- `ci-backend-test`
+- `ci-test`
 - `security-scan`
 
 **Settings:**
@@ -97,10 +97,10 @@ gh api -X DELETE repos/pranaypatel512/BulkDealAnalyzer/branches/staging/protecti
 
 ### `staging` Branch
 **Required Checks:**
-- `backend-lint`
-- `backend-test`
-- `backend-integration-test`
-- `test`
+- `ci-backend-lint`
+- `ci-backend-test`
+- `ci-backend-integration-test`
+- `ci-test`
 - `security-scan`
 
 **Settings:**
@@ -111,10 +111,10 @@ gh api -X DELETE repos/pranaypatel512/BulkDealAnalyzer/branches/staging/protecti
 
 ### `main` Branch
 **Required Checks:**
-- `backend-lint`
-- `backend-test`
-- `backend-integration-test`
-- `test`
+- `ci-backend-lint`
+- `ci-backend-test`
+- `ci-backend-integration-test`
+- `ci-test`
 - `security-scan`
 
 **Settings:**

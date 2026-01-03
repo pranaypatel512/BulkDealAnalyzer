@@ -31,10 +31,11 @@ Status checks (`security-scan`, `test`) stuck in "waiting" state in GitHub Actio
    grep -E "^  [a-z-]+:" .github/workflows/*.yml
    ```
 2. Update branch protection to match:
-   - `backend-lint` (not `Backend Lint`)
-   - `backend-test` (not `Backend Tests`)
+   - `ci-backend-lint` (not `Backend Lint` or `CI Tests / Backend Lint`)
+   - `ci-backend-test` (not `Backend Tests`)
+   - `ci-backend-integration-test` (not `Backend Integration Tests`)
+   - `ci-test` (not `Test`)
    - `security-scan` (not `Security Scan`)
-   - `test` (not `Test`)
 
 ### 4. Merge Conflicts
 **Symptom**: Workflows don't trigger
@@ -44,15 +45,15 @@ Status checks (`security-scan`, `test`) stuck in "waiting" state in GitHub Actio
 ## Current Workflow Configuration
 
 ### Security Scan Workflow
-- `secret-scan`: Runs gitleaks
-- `dependency-scan`: Runs npm audit, safety check
-- `security-scan`: Aggregates results (requires `secret-scan` success)
+- `security-secret-scan`: Runs gitleaks
+- `security-dependency-scan`: Runs npm audit, safety check
+- `security-scan`: Aggregates results (requires `security-secret-scan` success)
 
 ### Tests Workflow
-- `backend-lint`: Runs ruff
-- `backend-test`: Runs pytest unit tests
-- `backend-integration-test`: Runs integration tests
-- `test`: Aggregates results (requires `backend-lint` and `backend-test` success)
+- `ci-backend-lint`: Runs ruff
+- `ci-backend-test`: Runs pytest unit tests
+- `ci-backend-integration-test`: Runs integration tests
+- `ci-test`: Aggregates results (requires `ci-backend-lint` and `ci-backend-test` success)
 
 ## Verification Steps
 

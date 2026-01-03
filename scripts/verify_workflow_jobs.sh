@@ -158,10 +158,10 @@ if [ $TOTAL_ERRORS -eq 0 ]; then
     echo "✅ No required jobs have 'name' fields"
     echo ""
     echo "Status check contexts will be:"
-    echo "  - backend-lint"
-    echo "  - backend-test"
-    echo "  - backend-integration-test"
-    echo "  - test"
+    echo "  - ci-backend-lint"
+    echo "  - ci-backend-test"
+    echo "  - ci-backend-integration-test"
+    echo "  - ci-test"
     echo "  - security-scan"
     exit 0
 else

@@ -2,18 +2,22 @@
 
 ## Quick Reference
 
-### Verified Job IDs
+### Verified Job IDs (NEW NAMING)
 
 **Security Scan Workflow** (`.github/workflows/security-scan.yml`):
-- `secret-scan` - Secret scanning (gitleaks)
-- `dependency-scan` - Dependency scanning (npm audit, safety)
-- `security-scan` - **Aggregate job** (verifies secret-scan + dependency-scan)
+- `security-secret-scan` - Secret scanning (gitleaks)
+- `security-dependency-scan` - Dependency scanning (npm audit, safety)
+- `security-scan` - **Aggregate job** (verifies security-secret-scan + security-dependency-scan)
 
 **Tests Workflow** (`.github/workflows/tests.yml`):
-- `backend-lint` - Backend linting (ruff)
-- `backend-test` - Backend unit tests (pytest)
-- `backend-integration-test` - Backend integration tests (pytest)
-- `test` - **Aggregate job** (verifies backend-lint + backend-test + backend-integration-test)
+- `ci-backend-lint` - Backend linting (ruff)
+- `ci-backend-test` - Backend unit tests (pytest)
+- `ci-backend-integration-test` - Backend integration tests (pytest)
+- `ci-test` - **Aggregate job** (verifies ci-backend-lint + ci-backend-test + ci-backend-integration-test)
+
+**Naming Convention:**
+- `ci-*` prefix for CI Tests workflow jobs
+- `security-*` prefix for Security Scan workflow jobs
 
 ## Branch Protection Configuration
 
@@ -38,9 +42,9 @@ gh auth login
    - ✅ Require status checks to pass before merging
      - ✅ Require branches to be up to date
      - Select these checks:
-       - `backend-lint`
-       - `backend-test`
-       - `test`
+       - `ci-backend-lint`
+       - `ci-backend-test`
+       - `ci-test`
        - `security-scan`
 
 3. **For `staging` branch:**
@@ -50,10 +54,10 @@ gh auth login
    - ✅ Require status checks to pass before merging
      - ✅ Require branches to be up to date
      - Select these checks:
-       - `backend-lint`
-       - `backend-test`
-       - `backend-integration-test`
-       - `test`
+       - `ci-backend-lint`
+       - `ci-backend-test`
+       - `ci-backend-integration-test`
+       - `ci-test`
        - `security-scan`
 
 4. **For `main` branch:**
@@ -63,10 +67,10 @@ gh auth login
    - ✅ Require status checks to pass before merging
      - ✅ Require branches to be up to date
      - Select these checks:
-       - `backend-lint`
-       - `backend-test`
-       - `backend-integration-test`
-       - `test`
+       - `ci-backend-lint`
+       - `ci-backend-test`
+       - `ci-backend-integration-test`
+       - `ci-test`
        - `security-scan`
 
 ## Verification
