@@ -42,7 +42,7 @@ jobs:
         run: |
           if [ -f package.json ]; then
             npm ci
-            npm audit --audit-level=high || exit 1
+            npm audit --audit-level=high
           else
             echo "No package.json found, skipping npm audit"
           fi
@@ -51,7 +51,7 @@ jobs:
         run: |
           if [ -f backend/requirements.txt ]; then
             python -m pip install safety || true
-            safety check --file backend/requirements.txt || exit 1
+            safety check --file backend/requirements.txt
           else
             echo "No requirements.txt found, skipping safety check"
           fi

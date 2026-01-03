@@ -125,12 +125,18 @@ echo -e "${GREEN}✅ Repository access verified${NC}"
 echo ""
 
 # Define required status checks
-# Note: These should match your actual CI/CD workflow job names from .github/workflows/tests.yml
+# Note: These should match your actual CI/CD workflow job IDs (not names) from .github/workflows/
+# 
+# Important: Only require aggregate jobs, not individual jobs that are dependencies.
+# For example, require 'security-scan' (which depends on secret-scan and dependency-scan),
+# not all three separately, to avoid "waiting for status" issues.
 
 # Dev branch checks (basic validation)
+# Note: 'test' job aggregates backend-lint, backend-test, backend-integration-test
 DEV_CHECKS="backend-lint,backend-test,test,security-scan"
 
 # Staging branch checks (includes integration tests)
+# Note: 'security-scan' job aggregates secret-scan and dependency-scan
 STAGING_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
 
 # Main branch checks (full validation including integration tests)
