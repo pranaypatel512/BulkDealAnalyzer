@@ -55,10 +55,6 @@ setup_branch_protection() {
     
     echo -e "${YELLOW}Setting up protection for '${branch}' branch...${NC}"
     
-    # Build the protection command
-    local cmd="gh api repos/${REPO_FULL}/branches/${branch}/protection"
-    local method="PUT"
-    
     # Required status checks (comma-separated)
     local checks_json=$(echo "$required_checks" | jq -R -s -c 'split(",") | map(select(length > 0))')
     
@@ -80,9 +76,6 @@ setup_branch_protection() {
   "allow_force_pushes": false,
   "allow_deletions": false,
   "required_linear_history": true,
-  "allow_squash_merge": true,
-  "allow_merge_commit": false,
-  "allow_rebase_merge": true,
   "required_conversation_resolution": true
 }
 EOF
