@@ -19,15 +19,19 @@ fi
 if command -v gitleaks >/dev/null 2>&1; then
     echo ""
     echo "Running gitleaks secret scan..."
-    if gitleaks detect --source . --verbose --no-git 2>&1 | grep -q "No leaks found"; then
+    GITLEAKS_OUTPUT=$(gitleaks detect --source . --verbose --no-git 2>&1)
+    if echo "$GITLEAKS_OUTPUT" | grep -q "no leaks found"; then
         echo "✅ gitleaks: No secrets found"
+    elif echo "$GITLEAKS_OUTPUT" | grep -q "leaks found"; then
+        echo "❌ ERROR: gitleaks detected potential secrets!"
+        echo "$GITLEAKS_OUTPUT" | grep -A 5 "leaks found"
+        errors=$((errors+1))
     else
-        echo "⚠️  gitleaks: Potential secrets detected (review output above)"
-        gitleaks detect --source . --verbose --no-git 2>&1 | head -10
+        echo "✅ gitleaks: Scan completed"
     fi
 else
     echo "⚠️  gitleaks not installed - skipping secret scan"
-    echo "   Install: https://github.com/gitleaks/gitleaks#installation"
+    echo "   Install: ./scripts/install_gitleaks.sh"
 fi
 
 # Check Python syntax
