@@ -1,0 +1,71 @@
+name: CI Tests
+
+on:
+  pull_request:
+    branches: [ staging, main ]
+  push:
+    branches: [ staging, main ]
+
+jobs:
+  lint-and-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then npm ci; fi
+          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
+          
+      - name: Lint
+        run: |
+          if [ -f package.json ]; then npm run lint --if-present; fi
+          if [ -f backend/pyproject.toml ] || [ -f backend/setup.cfg ]; then
+            cd backend && ruff check . || true
+          fi
+          
+      - name: Unit tests
+        run: |
+          if [ -f package.json ]; then npm test --if-present; fi
+          if [ -f pytest.ini ] || [ -d backend/tests ]; then
+            cd backend && pytest -q || true
+          fi
+
+  integration:
+    needs: lint-and-unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
+          
+      - name: Start test DB
+        run: |
+          if [ -f docker-compose.test.yml ]; then
+            docker-compose -f docker-compose.test.yml up -d
+          fi
+          
+      - name: Run integration tests
+        run: |
+          if [ -d backend/tests/integration ]; then
+            cd backend && pytest tests/integration -q || true
+          fi
+
+

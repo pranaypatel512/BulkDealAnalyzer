@@ -1,0 +1,3 @@
+"""BulkDeal Analyzer Backend Application."""
+
+

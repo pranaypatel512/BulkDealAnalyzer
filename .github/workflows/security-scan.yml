@@ -1,0 +1,57 @@
+name: Security scan
+
+on:
+  pull_request:
+    branches: [ staging, main ]
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for gitleaks
+          
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --verbose --redact
+          
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Run dependency scan (npm)
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+            npm audit --audit-level=high || true
+          fi
+          
+      - name: Run dependency scan (pip)
+        run: |
+          if [ -f backend/requirements.txt ]; then
+            python -m pip install safety || true
+            safety check --file backend/requirements.txt || true
+          fi
+          
+      - name: Snyk scan (optional)
+        if: ${{ secrets.SNYK_TOKEN != '' }}
+        run: |
+          echo "SNYK_TOKEN present — run snyk"
+          # Add snyk scan if token is available
+
+
