@@ -125,21 +125,30 @@ echo -e "${GREEN}✅ Repository access verified${NC}"
 echo ""
 
 # Define required status checks
-# Note: These should match your actual CI/CD workflow job IDs (not names) from .github/workflows/
 # 
-# Important: Only require aggregate jobs, not individual jobs that are dependencies.
-# For example, require 'security-scan' (which depends on secret-scan and dependency-scan),
-# not all three separately, to avoid "waiting for status" issues.
+# IMPORTANT: These must match the actual job IDs (not display names) from .github/workflows/
+# 
+# Job IDs in workflows:
+#   Security Scan: secret-scan, dependency-scan, security-scan (aggregate)
+#   Tests: backend-lint, backend-test, backend-integration-test, test (aggregate)
+# 
+# Strategy: Require both individual jobs AND aggregate jobs for:
+#   - Individual jobs: Provide immediate feedback and granular control
+#   - Aggregate jobs: Verify overall status and handle dependency logic
+# 
+# Note: We don't require secret-scan or dependency-scan individually because
+#       security-scan (aggregate) already verifies their results.
 
 # Dev branch checks (basic validation)
-# Note: 'test' job aggregates backend-lint, backend-test, backend-integration-test
+# Required: backend-lint, backend-test, test (aggregate), security-scan (aggregate)
 DEV_CHECKS="backend-lint,backend-test,test,security-scan"
 
 # Staging branch checks (includes integration tests)
-# Note: 'security-scan' job aggregates secret-scan and dependency-scan
+# Required: backend-lint, backend-test, backend-integration-test, test (aggregate), security-scan (aggregate)
 STAGING_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
 
 # Main branch checks (full validation including integration tests)
+# Required: backend-lint, backend-test, backend-integration-test, test (aggregate), security-scan (aggregate)
 MAIN_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
 
 echo "Setting up branch protection rules..."
