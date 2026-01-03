@@ -69,23 +69,25 @@ if command -v npm >/dev/null 2>&1; then
   fi
 fi
 
-# Check Python version (should be >= 3.13, 3.14 doesn't exist yet - using 3.13+)
-# Note: Python 3.14 doesn't exist yet. Latest is 3.13.x. Using 3.13+ as minimum.
+# Check Python version (should be >= 3.14.2)
 if command -v python3 >/dev/null 2>&1; then
   python_version=$(python3 --version 2>&1 | awk '{print $2}')
   python_major=$(echo $python_version | cut -d'.' -f1)
   python_minor=$(echo $python_version | cut -d'.' -f2)
   python_patch=$(echo $python_version | cut -d'.' -f3)
   
-  # Compare with 3.13.0 (since 3.14 doesn't exist, using 3.13+)
+  # Compare with 3.14.2
   if [ "$python_major" -lt 3 ]; then
-    echo "[ERROR] Python version must be >= 3.13 (found $python_version)"
-    echo "        Note: Python 3.14 doesn't exist yet. Latest is 3.13.x"
+    echo "[ERROR] Python version must be >= 3.14.2 (found $python_version)"
     errors=$((errors+1))
-  elif [ "$python_major" -eq 3 ] && [ "$python_minor" -lt 13 ]; then
-    echo "[ERROR] Python version must be >= 3.13 (found $python_version)"
-    echo "        Note: Python 3.14 doesn't exist yet. Latest is 3.13.x"
+  elif [ "$python_major" -eq 3 ] && [ "$python_minor" -lt 14 ]; then
+    echo "[ERROR] Python version must be >= 3.14.2 (found $python_version)"
     errors=$((errors+1))
+  elif [ "$python_major" -eq 3 ] && [ "$python_minor" -eq 14 ]; then
+    if [ -z "$python_patch" ] || [ "$python_patch" -lt 2 ]; then
+      echo "[ERROR] Python version must be >= 3.14.2 (found $python_version)"
+      errors=$((errors+1))
+    fi
   fi
 fi
 

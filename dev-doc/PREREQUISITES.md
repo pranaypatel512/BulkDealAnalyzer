@@ -7,7 +7,7 @@ This document lists machine, account, and project-level prerequisites that must 
 - **git** >= 2.34
 - **node** >= 25.2.1 (latest, use .nvmrc to pin)
 - **npm** >= 11.7.0 (latest)
-- **python** >= 3.13 (3.14 doesn't exist yet, latest is 3.13.x)
+- **python** >= 3.14.2
 - **docker** >= 20.10
 - **docker-compose** >= 1.29 or Docker Compose v2.x
 - **supabase CLI** (pin version in TOOL_VERSIONS)
