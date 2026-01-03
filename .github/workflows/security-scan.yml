@@ -63,9 +63,14 @@ jobs:
           fi
           
       - name: Snyk scan (optional)
-        if: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "ℹ️ SNYK_TOKEN not configured, skipping Snyk scan"
+            exit 0
+          fi
           echo "SNYK_TOKEN present — run snyk"
           # Add snyk scan if token is available
           
