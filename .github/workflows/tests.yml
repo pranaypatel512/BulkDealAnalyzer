@@ -141,13 +141,12 @@ jobs:
           if [ -f package.json ]; then npm run build; fi
 
   # Combined test job for branch protection
-  # This job runs after all test jobs complete and verifies they passed
+  # This job aggregates all test job results
   test:
     name: Test
     runs-on: ubuntu-latest
     needs: [backend-lint, backend-test, backend-integration-test]
-    # Run only after all dependencies have a final result (success, failure, or skipped)
-    if: always() && (needs.backend-lint.result == 'success' || needs.backend-lint.result == 'failure') && (needs.backend-test.result == 'success' || needs.backend-test.result == 'failure') && (needs.backend-integration-test.result == 'success' || needs.backend-integration-test.result == 'failure' || needs.backend-integration-test.result == 'skipped')
+    if: always()
     steps:
       - uses: actions/checkout@v4
       - name: Verify tests passed
@@ -157,13 +156,15 @@ jobs:
           echo "backend-test result: ${{ needs.backend-test.result }}"
           echo "backend-integration-test result: ${{ needs.backend-integration-test.result }}"
           
+          # backend-lint must succeed
           if [ "${{ needs.backend-lint.result }}" != "success" ]; then
-            echo "❌ backend-lint failed"
+            echo "❌ backend-lint failed or was cancelled"
             exit 1
           fi
           
+          # backend-test must succeed
           if [ "${{ needs.backend-test.result }}" != "success" ]; then
-            echo "❌ backend-test failed"
+            echo "❌ backend-test failed or was cancelled"
             exit 1
           fi
           
