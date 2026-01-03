@@ -22,10 +22,11 @@ All protected branches (`main`, `dev`, `staging`) require:
   - Require review from Code Owners (if CODEOWNERS file exists)
 - ✅ **Require status checks to pass before merging**
   - Required checks:
-    - `lint` (ESLint, Ruff)
-    - `test` (Unit + Integration tests)
-    - `security-scan` (Gitleaks, dependency scan)
-    - `build` (Backend + Frontend build)
+    - `backend-lint` - Backend code linting (Ruff)
+    - `backend-test` - Backend unit tests (Pytest)
+    - `backend-integration-test` - Backend integration tests
+    - `test` - Combined test status check
+    - `security-scan` - Secret and dependency scanning
   - Require branches to be up to date before merging
 - ✅ **Require conversation resolution before merging**
 - ✅ **Require linear history** (no merge commits, only squash/rebase)
@@ -55,9 +56,10 @@ feature/* → PR → dev → PR → staging → PR → main
   - Dismiss stale pull request approvals when new commits are pushed
 - ✅ **Require status checks to pass before merging**
   - Required checks:
-    - `lint` (ESLint, Ruff)
-    - `test` (Unit + Integration tests)
-    - `security-scan` (Gitleaks, dependency scan)
+    - `backend-lint` - Backend code linting (Ruff)
+    - `backend-test` - Backend unit tests (Pytest)
+    - `test` - Combined test status check
+    - `security-scan` - Secret and dependency scanning
   - Require branches to be up to date before merging
 - ✅ **Require conversation resolution before merging**
 - ✅ **Include administrators** (admins must follow these rules)
@@ -86,10 +88,11 @@ feature/* → PR (1 approval + CI) → dev
   - Dismiss stale pull request approvals when new commits are pushed
 - ✅ **Require status checks to pass before merging**
   - Required checks:
-    - `lint` (ESLint, Ruff)
-    - `test` (Unit + Integration + E2E tests)
-    - `security-scan` (Gitleaks, dependency scan)
-    - `build` (Backend + Frontend build)
+    - `backend-lint` - Backend code linting (Ruff)
+    - `backend-test` - Backend unit tests (Pytest)
+    - `backend-integration-test` - Backend integration tests
+    - `test` - Combined test status check
+    - `security-scan` - Secret and dependency scanning
   - Require branches to be up to date before merging
 - ✅ **Require conversation resolution before merging**
 - ✅ **Include administrators** (admins must follow these rules)

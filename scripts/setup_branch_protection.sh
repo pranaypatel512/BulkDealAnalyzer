@@ -132,29 +132,32 @@ echo -e "${GREEN}✅ Repository access verified${NC}"
 echo ""
 
 # Define required status checks
-# Note: These should match your actual CI/CD workflow job names
-BACKEND_CHECKS="backend-lint,backend-test,backend-security-scan"
-FRONTEND_CHECKS="frontend-lint,frontend-test,frontend-build,frontend-security-scan"
-ALL_CHECKS="${BACKEND_CHECKS},${FRONTEND_CHECKS},pre-commit,secret-scan"
+# Note: These should match your actual CI/CD workflow job names from .github/workflows/tests.yml
 
-# For now, use minimal checks (will be updated when CI/CD is fully configured)
-MINIMAL_CHECKS="test,security-scan"
+# Dev branch checks (basic validation)
+DEV_CHECKS="backend-lint,backend-test,test,security-scan"
+
+# Staging branch checks (includes integration tests)
+STAGING_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
+
+# Main branch checks (full validation including integration tests)
+MAIN_CHECKS="backend-lint,backend-test,backend-integration-test,test,security-scan"
 
 echo "Setting up branch protection rules..."
 echo ""
 
-# Setup main branch
-setup_branch_protection "main" 2 "${MINIMAL_CHECKS}"
+# Setup main branch (2 approvals, full checks)
+setup_branch_protection "main" 2 "${MAIN_CHECKS}"
 
 echo ""
 
-# Setup dev branch
-setup_branch_protection "dev" 1 "${MINIMAL_CHECKS}"
+# Setup dev branch (1 approval, basic checks)
+setup_branch_protection "dev" 1 "${DEV_CHECKS}"
 
 echo ""
 
-# Setup staging branch
-setup_branch_protection "staging" 1 "${MINIMAL_CHECKS}"
+# Setup staging branch (1 approval, includes integration tests)
+setup_branch_protection "staging" 1 "${STAGING_CHECKS}"
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
@@ -162,17 +165,24 @@ echo -e "${GREEN}║                    Branch Protection Setup Complete!       
 echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "Summary:"
-echo "  ✅ main:    2 approvals required, all CI checks must pass"
-echo "  ✅ dev:     1 approval required, all CI checks must pass"
-echo "  ✅ staging: 1 approval required, all CI checks must pass"
+echo "  ✅ main:    2 approvals, checks: ${MAIN_CHECKS}"
+echo "  ✅ dev:     1 approval,  checks: ${DEV_CHECKS}"
+echo "  ✅ staging: 1 approval,  checks: ${STAGING_CHECKS}"
+echo ""
+echo "Required Status Checks:"
+echo "  - backend-lint: Backend code linting (Ruff)"
+echo "  - backend-test: Backend unit tests (Pytest)"
+echo "  - backend-integration-test: Backend integration tests (staging/main only)"
+echo "  - test: Combined test status check"
+echo "  - security-scan: Secret and dependency scanning"
 echo ""
 echo "Next steps:"
 echo "  1. Verify protection rules: https://github.com/${REPO_FULL}/settings/branches"
-echo "  2. Update required status checks when CI/CD workflows are ready"
-echo "  3. Create CODEOWNERS file: .github/CODEOWNERS"
+echo "  2. Create a test PR to trigger CI workflows (checks will appear after first run)"
+echo "  3. Verify CODEOWNERS file exists: .github/CODEOWNERS"
 echo ""
-echo "Note: You may need to update the required status checks after your CI/CD"
-echo "      workflows are fully configured. The checks are currently set to minimal"
-echo "      values that will be updated automatically when workflows run."
+echo "Note: The status checks will only appear in GitHub after the first PR"
+echo "      triggers the CI/CD workflows. You may need to create a test PR"
+echo "      and wait for workflows to complete before all checks are available."
 echo ""
 
