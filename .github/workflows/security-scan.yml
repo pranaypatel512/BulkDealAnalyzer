@@ -77,26 +77,32 @@ jobs:
           exit 0
 
   # Combined security scan job for branch protection
+  # This job runs in parallel with secret-scan and dependency-scan
+  # It checks their results after they complete
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: [secret-scan, dependency-scan]
-    # Allow this job to run even if dependency-scan is skipped (no package.json/requirements.txt)
-    if: always()
+    if: always() && (needs.secret-scan.result == 'success' || needs.secret-scan.result == 'failure') && (needs.dependency-scan.result == 'success' || needs.dependency-scan.result == 'failure' || needs.dependency-scan.result == 'skipped')
     steps:
       - uses: actions/checkout@v4
       - name: Verify security scans passed
         run: |
           echo "Checking required security scan jobs..."
+          echo "secret-scan result: ${{ needs.secret-scan.result }}"
+          echo "dependency-scan result: ${{ needs.dependency-scan.result }}"
+          
           if [ "${{ needs.secret-scan.result }}" != "success" ]; then
             echo "❌ secret-scan failed"
             exit 1
           fi
-          # dependency-scan can be skipped if no dependencies found, but shouldn't fail
+          
+          # dependency-scan can be skipped, but shouldn't fail
           if [ "${{ needs.dependency-scan.result }}" == "failure" ]; then
             echo "❌ dependency-scan failed"
             exit 1
           fi
+          
           echo "✅ All required security scans passed"
 
 
