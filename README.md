@@ -103,7 +103,8 @@ All protected branches (`main`, `dev`, `staging`) require:
 **Setup Branch Protection**:
 - Quick Guide: [SETUP_BRANCH_PROTECTION.md](.github/SETUP_BRANCH_PROTECTION.md)
 - Detailed Rules: [BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md)
-- Automated Setup: `./scripts/setup_branch_protection.sh`
+- **Create/Update Rules**: `./scripts/create_branch_protection.sh` (recommended)
+- **Clear & Recreate**: `./scripts/recreate_branch_protection.sh` (full reset)
 
 ### Quick Start
 
