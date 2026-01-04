@@ -97,9 +97,12 @@ setup_branch_protection() {
 EOF
 )
     
-    # Make API call
-    if gh api -X PUT "repos/${REPO_FULL}/branches/${branch}/protection" \
-        --input - <<< "$payload" &> /dev/null; then
+    # Make API call and capture error output
+    local error_output=$(gh api -X PUT "repos/${REPO_FULL}/branches/${branch}/protection" \
+        --input - <<< "$payload" 2>&1)
+    local exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
         echo -e "${GREEN}✅ '${branch}' branch protection configured${NC}"
         echo "   - Require PR: Yes"
         echo "   - Required approvals: ${approvals}"
@@ -109,6 +112,13 @@ EOF
         return 0
     else
         echo -e "${RED}❌ Failed to configure '${branch}' branch protection${NC}"
+        echo -e "${YELLOW}Error details:${NC}"
+        echo "$error_output" | sed 's/^/   /'
+        echo ""
+        echo -e "${YELLOW}Note: If status checks don't exist yet, you may need to:${NC}"
+        echo "   1. Create a test PR to trigger workflows"
+        echo "   2. Wait for workflows to complete"
+        echo "   3. Then run this script again, or manually add checks via GitHub UI"
         return 1
     fi
 }
@@ -166,17 +176,15 @@ echo ""
 #       security-scan (aggregate) already verifies their results.
 
 # Dev branch checks (basic validation)
-# NOTE: GitHub creates status check contexts as "{workflow_name} / {job_id} (event)"
-# Required: CI Tests / ci-backend-lint, CI Tests / ci-backend-test, CI Tests / ci-test, Security Scan / security-scan
-DEV_CHECKS="CI Tests / ci-backend-lint (pull_request),CI Tests / ci-backend-test (pull_request),CI Tests / ci-test (pull_request),Security Scan / security-scan (pull_request)"
+# NOTE: Use job IDs only (not full format) since jobs don't have 'name' fields
+# Status check contexts will be just the job IDs: ci-backend-lint, ci-backend-test, etc.
+DEV_CHECKS="ci-backend-lint,ci-backend-test,ci-test,security-scan"
 
 # Staging branch checks (includes integration tests)
-# Required: CI Tests / ci-backend-lint, CI Tests / ci-backend-test, CI Tests / ci-backend-integration-test, CI Tests / ci-test, Security Scan / security-scan
-STAGING_CHECKS="CI Tests / ci-backend-lint (pull_request),CI Tests / ci-backend-test (pull_request),CI Tests / ci-backend-integration-test (pull_request),CI Tests / ci-test (pull_request),Security Scan / security-scan (pull_request)"
+STAGING_CHECKS="ci-backend-lint,ci-backend-test,ci-backend-integration-test,ci-test,security-scan"
 
 # Main branch checks (full validation including integration tests)
-# Required: CI Tests / ci-backend-lint, CI Tests / ci-backend-test, CI Tests / ci-backend-integration-test, CI Tests / ci-test, Security Scan / security-scan
-MAIN_CHECKS="CI Tests / ci-backend-lint (pull_request),CI Tests / ci-backend-test (pull_request),CI Tests / ci-backend-integration-test (pull_request),CI Tests / ci-test (pull_request),Security Scan / security-scan (pull_request)"
+MAIN_CHECKS="ci-backend-lint,ci-backend-test,ci-backend-integration-test,ci-test,security-scan"
 
 echo "Setting up branch protection rules..."
 echo ""
