@@ -145,16 +145,17 @@ echo ""
 #       security-scan (aggregate) already verifies their results.
 
 # Dev branch checks (basic validation)
-# Required: ci-backend-lint, ci-backend-test, ci-test (aggregate), security-scan (aggregate)
-DEV_CHECKS="ci-backend-lint,ci-backend-test,ci-test,security-scan"
+# NOTE: GitHub creates status check contexts as "{workflow_name} / {job_id} (event)"
+# Required: CI Tests / ci-backend-lint, CI Tests / ci-backend-test, CI Tests / ci-test, Security Scan / security-scan
+DEV_CHECKS="CI Tests / ci-backend-lint (pull_request),CI Tests / ci-backend-test (pull_request),CI Tests / ci-test (pull_request),Security Scan / security-scan (pull_request)"
 
 # Staging branch checks (includes integration tests)
-# Required: ci-backend-lint, ci-backend-test, ci-backend-integration-test, ci-test (aggregate), security-scan (aggregate)
-STAGING_CHECKS="ci-backend-lint,ci-backend-test,ci-backend-integration-test,ci-test,security-scan"
+# Required: CI Tests / ci-backend-lint, CI Tests / ci-backend-test, CI Tests / ci-backend-integration-test, CI Tests / ci-test, Security Scan / security-scan
+STAGING_CHECKS="CI Tests / ci-backend-lint (pull_request),CI Tests / ci-backend-test (pull_request),CI Tests / ci-backend-integration-test (pull_request),CI Tests / ci-test (pull_request),Security Scan / security-scan (pull_request)"
 
 # Main branch checks (full validation including integration tests)
-# Required: ci-backend-lint, ci-backend-test, ci-backend-integration-test, ci-test (aggregate), security-scan (aggregate)
-MAIN_CHECKS="ci-backend-lint,ci-backend-test,ci-backend-integration-test,ci-test,security-scan"
+# Required: CI Tests / ci-backend-lint, CI Tests / ci-backend-test, CI Tests / ci-backend-integration-test, CI Tests / ci-test, Security Scan / security-scan
+MAIN_CHECKS="CI Tests / ci-backend-lint (pull_request),CI Tests / ci-backend-test (pull_request),CI Tests / ci-backend-integration-test (pull_request),CI Tests / ci-test (pull_request),Security Scan / security-scan (pull_request)"
 
 echo "Setting up branch protection rules..."
 echo ""
