@@ -71,7 +71,8 @@ setup_branch_protection() {
     echo -e "${YELLOW}Setting up protection for '${branch}' branch...${NC}"
     
     # Required status checks (comma-separated)
-    local checks_json=$(echo "$required_checks" | jq -R -s -c 'split(",") | map(select(length > 0))')
+    # Split by comma, trim whitespace, filter empty strings, create JSON array
+    local checks_json=$(echo "$required_checks" | jq -R -r 'split(",") | map(select(length > 0) | gsub("^\\s+|\\s+$"; "")) | map(select(length > 0)) | @json')
     
     # Build JSON payload
     local payload=$(cat <<EOF
