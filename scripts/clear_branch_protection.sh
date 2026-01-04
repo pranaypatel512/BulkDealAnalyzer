@@ -11,10 +11,25 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Repository information
-REPO_OWNER="pranaypatel512"
-REPO_NAME="BulkDealAnalyzer"
-REPO_FULL="${REPO_OWNER}/${REPO_NAME}"
+# Auto-detect repository from git remote
+if git remote get-url origin &> /dev/null; then
+    REPO_URL=$(git remote get-url origin)
+    # Extract owner/repo from URL (handles both https and ssh formats)
+    if [[ "$REPO_URL" =~ github\.com[:/]([^/]+)/([^/]+)(\.git)?$ ]]; then
+        REPO_OWNER="${BASH_REMATCH[1]}"
+        REPO_NAME="${BASH_REMATCH[2]%.git}"
+        REPO_FULL="${REPO_OWNER}/${REPO_NAME}"
+    else
+        echo -e "${RED}❌ Could not parse repository from git remote${NC}"
+        echo "Remote URL: $REPO_URL"
+        exit 1
+    fi
+else
+    # Fallback to hardcoded values
+    REPO_OWNER="pranaypatel512"
+    REPO_NAME="BulkDealAnalyzer"
+    REPO_FULL="${REPO_OWNER}/${REPO_NAME}"
+fi
 
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║         Clear Branch Protection Rules for BulkDeal Analyzer           ║${NC}"
@@ -66,12 +81,18 @@ clear_branch_protection() {
 
 # Verify repository access
 echo "Verifying repository access..."
+echo "Repository: ${REPO_FULL}"
 if ! gh repo view "${REPO_FULL}" &> /dev/null; then
     echo -e "${RED}❌ Cannot access repository: ${REPO_FULL}${NC}"
+    echo ""
     echo "Please check:"
-    echo "  1. Repository exists"
-    echo "  2. You have admin access"
-    echo "  3. GitHub CLI is authenticated"
+    echo "  1. Repository exists: https://github.com/${REPO_FULL}"
+    echo "  2. You have admin access to the repository"
+    echo "  3. GitHub CLI is authenticated: gh auth status"
+    echo "  4. Try: gh auth login"
+    echo ""
+    echo "If repository name is different, update git remote:"
+    echo "  git remote set-url origin https://github.com/OWNER/REPO.git"
     exit 1
 fi
 
