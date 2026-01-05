@@ -22,10 +22,10 @@ All protected branches (`main`, `dev`, `staging`) require:
   - Require review from Code Owners (if CODEOWNERS file exists)
 - ✅ **Require status checks to pass before merging**
   - Required checks:
-    - `backend-lint` - Backend code linting (Ruff)
-    - `backend-test` - Backend unit tests (Pytest)
-    - `backend-integration-test` - Backend integration tests
-    - `test` - Combined test status check
+    - `ci-backend-lint` - Backend code linting (Ruff)
+    - `ci-backend-test` - Backend unit tests (Pytest)
+    - `ci-backend-integration-test` - Backend integration tests
+    - `ci-test` - Combined test status check
     - `security-scan` - Secret and dependency scanning
   - Require branches to be up to date before merging
 - ✅ **Require conversation resolution before merging**
@@ -56,9 +56,9 @@ feature/* → PR → dev → PR → staging → PR → main
   - Dismiss stale pull request approvals when new commits are pushed
 - ✅ **Require status checks to pass before merging**
   - Required checks:
-    - `backend-lint` - Backend code linting (Ruff)
-    - `backend-test` - Backend unit tests (Pytest)
-    - `test` - Combined test status check
+    - `ci-backend-lint` - Backend code linting (Ruff)
+    - `ci-backend-test` - Backend unit tests (Pytest)
+    - `ci-test` - Combined test status check
     - `security-scan` - Secret and dependency scanning
   - Require branches to be up to date before merging
 - ✅ **Require conversation resolution before merging**
@@ -90,10 +90,10 @@ feature/* → PR (CI checks only) → dev
   - Dismiss stale pull request approvals when new commits are pushed
 - ✅ **Require status checks to pass before merging**
   - Required checks:
-    - `backend-lint` - Backend code linting (Ruff)
-    - `backend-test` - Backend unit tests (Pytest)
-    - `backend-integration-test` - Backend integration tests
-    - `test` - Combined test status check
+    - `ci-backend-lint` - Backend code linting (Ruff)
+    - `ci-backend-test` - Backend unit tests (Pytest)
+    - `ci-backend-integration-test` - Backend integration tests
+    - `ci-test` - Combined test status check
     - `security-scan` - Secret and dependency scanning
   - Require branches to be up to date before merging
 - ✅ **Require conversation resolution before merging**
@@ -129,10 +129,10 @@ dev → PR (1 approval + CI) → staging → PR (2 approvals + CI) → main
 All protected branches require these status checks to pass:
 
 ### Backend Checks
-- `backend-lint`: Ruff linting
-- `backend-test`: Pytest unit tests
-- `backend-integration-test`: Integration tests
-- `backend-security-scan`: Gitleaks scan
+- `ci-backend-lint`: Ruff linting
+- `ci-backend-test`: Pytest unit tests
+- `ci-backend-integration-test`: Integration tests
+- `security-secret-scan`: Gitleaks secret scanning
 
 ### Frontend Checks (when implemented)
 - `frontend-lint`: ESLint + Prettier
@@ -267,7 +267,7 @@ Create `.github/CODEOWNERS` file to automatically request reviews:
 | Branch | Direct Commits | PR Required | Approvals | CI Required | Force Push | Deletion |
 |--------|---------------|-------------|-----------|--------------|------------|----------|
 | `main` | ❌ | ✅ | 2 | ✅ | ❌ | ❌ |
-| `dev` | ❌ | ✅ | 1 | ✅ | ❌ | ❌ |
+| `dev` | ❌ | ✅ | 0 | ✅ | ❌ | ❌ |
 | `staging` | ❌ | ✅ | 1 | ✅ | ❌ | ❌ |
 | `feature/*` | ✅ | N/A | N/A | On PR | ✅ | ✅ |
 

@@ -90,11 +90,11 @@ gh api repos/pranaypatel512/BulkDealAnalyzer/branches/main/protection
 ## Important Notes
 
 1. **Job IDs vs Display Names:**
-   - Use job IDs (e.g., `backend-lint`), NOT display names (e.g., "Backend Lint")
+   - Use job IDs (e.g., `ci-backend-lint`), NOT display names (e.g., "Backend Lint")
    - Job IDs are the keys in the workflow YAML files
 
 2. **Aggregate Jobs:**
-   - `test` and `security-scan` are aggregate jobs that verify their dependencies
+   - `ci-test` and `security-scan` are aggregate jobs that verify their dependencies
    - They use `if: always()` to run even if dependencies fail
    - They check dependency results and report final status
 

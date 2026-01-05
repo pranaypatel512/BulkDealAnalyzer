@@ -9,20 +9,20 @@ GitHub Actions creates status check contexts based on:
 
 ### When Job Has NO `name` Field
 
-Status check context = **Job ID** (e.g., `backend-lint`)
+Status check context = **Job ID** (e.g., `ci-backend-lint`)
 
 **Example:**
 ```yaml
 name: CI Tests  # Workflow name (doesn't affect status check)
 
 jobs:
-  backend-lint:  # Job ID
+  ci-backend-lint:  # Job ID
     runs-on: ubuntu-latest
     # No 'name' field
     steps: [...]
 ```
 
-**Status Check Context:** `backend-lint` ✅
+**Status Check Context:** `ci-backend-lint` ✅
 
 ### When Job HAS `name` Field
 
@@ -33,7 +33,7 @@ Status check context = **`{workflow_name} / {job_name} (event)`**
 name: CI Tests
 
 jobs:
-  backend-lint:
+  ci-backend-lint:
     name: Backend Lint  # Job name
     runs-on: ubuntu-latest
     steps: [...]
@@ -53,7 +53,7 @@ To ensure status check contexts match job IDs (for branch protection):
 
 ### Tests Workflow
 - **Workflow name:** `CI Tests` (descriptive, for UI)
-- **Job IDs:** `backend-lint`, `backend-test`, `backend-integration-test`, `test`
+- **Job IDs:** `ci-backend-lint`, `ci-backend-test`, `ci-backend-integration-test`, `ci-test`
 - **Status check contexts:** Job IDs (no `name` fields on jobs) ✅
 
 ### Security Scan Workflow

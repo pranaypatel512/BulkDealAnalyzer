@@ -8,7 +8,7 @@ This guide helps you clear and recreate branch protection rules with the correct
 
 After removing `name` fields from workflow jobs, status check contexts changed from:
 - ❌ `CI Tests / Backend Lint (pull_request)` (with name field)
-- ✅ `backend-lint` (without name field)
+- ✅ `ci-backend-lint` (without name field)
 
 Branch protection rules need to be updated to match the new status check context names.
 
@@ -37,7 +37,7 @@ This script will:
 **Expected Output:**
 - ✅ All required checks match workflow job IDs
 - ✅ No required jobs have 'name' fields
-- Status check contexts will be: backend-lint, backend-test, etc.
+- Status check contexts will be: ci-backend-lint, ci-backend-test, etc.
 
 ### Step 2: Clear Existing Rules
 
