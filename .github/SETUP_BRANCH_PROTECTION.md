@@ -51,7 +51,7 @@ gh auth login
    - Branch name pattern: `dev`
    - ✅ **Protect matching branches**
    - ✅ **Require a pull request before merging**
-     - ✅ Require approvals: **1**
+     - ✅ Require approvals: **0** (solo development)
      - ✅ Dismiss stale pull request approvals when new commits are pushed
    - ✅ **Require status checks to pass before merging**
      - ✅ Require branches to be up to date before merging

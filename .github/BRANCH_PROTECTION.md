@@ -52,7 +52,7 @@ feature/* → PR → dev → PR → staging → PR → main
 
 **Protection Rules**:
 - ✅ **Require a pull request before merging**
-  - Require approvals: **1** (at least 1 reviewer)
+  - Require approvals: **0** (solo development - no approvals needed)
   - Dismiss stale pull request approvals when new commits are pushed
 - ✅ **Require status checks to pass before merging**
   - Required checks:
@@ -73,8 +73,10 @@ feature/* → PR → dev → PR → staging → PR → main
 
 **Workflow**:
 ```
-feature/* → PR (1 approval + CI) → dev
+feature/* → PR (CI checks only) → dev
 ```
+
+**Note for Solo Development**: The `dev` branch is configured with 0 required approvals to allow solo developers to merge PRs after CI checks pass. When working in a team, you can increase this to 1 approval.
 
 ---
 

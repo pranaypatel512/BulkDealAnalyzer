@@ -194,8 +194,8 @@ setup_branch_protection "main" 2 "${MAIN_CHECKS}"
 
 echo ""
 
-# Setup dev branch (1 approval, basic checks)
-setup_branch_protection "dev" 1 "${DEV_CHECKS}"
+# Setup dev branch (0 approvals for solo dev, basic checks)
+setup_branch_protection "dev" 0 "${DEV_CHECKS}"
 
 echo ""
 
@@ -209,7 +209,7 @@ echo -e "${GREEN}╚════════════════════
 echo ""
 echo "Summary:"
 echo "  ✅ main:    2 approvals, checks: ${MAIN_CHECKS}"
-echo "  ✅ dev:     1 approval,  checks: ${DEV_CHECKS}"
+echo "  ✅ dev:     0 approvals (solo dev), checks: ${DEV_CHECKS}"
 echo "  ✅ staging: 1 approval,  checks: ${STAGING_CHECKS}"
 echo ""
 echo "Required Status Checks:"
