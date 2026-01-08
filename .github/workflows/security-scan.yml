@@ -100,7 +100,7 @@ jobs:
           fi
           
           # security-dependency-scan can be skipped (no dependencies), but shouldn't fail
-          if [ "${{ needs.security-dependency-scan.result }}" == "failure" ]; then
+          if [ "${{ needs.security-dependency-scan.result }}" = "failure" ]; then
             echo "❌ security-dependency-scan failed"
             exit 1
           fi

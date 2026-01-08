@@ -165,7 +165,7 @@ jobs:
           fi
           
           # ci-backend-integration-test can be skipped, but shouldn't fail
-          if [ "${{ needs.ci-backend-integration-test.result }}" == "failure" ]; then
+          if [ "${{ needs.ci-backend-integration-test.result }}" = "failure" ]; then
             echo "❌ ci-backend-integration-test failed"
             exit 1
           fi

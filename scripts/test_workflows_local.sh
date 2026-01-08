@@ -132,7 +132,7 @@ if [ "$SECRET_SCAN_RESULT" != "success" ]; then
     exit 1
 fi
 
-if [ "$DEPENDENCY_SCAN_RESULT" == "failure" ]; then
+if [ "$DEPENDENCY_SCAN_RESULT" = "failure" ]; then
     echo -e "${RED}❌ dependency-scan failed${NC}"
     exit 1
 fi
@@ -157,7 +157,7 @@ if [ "$BACKEND_TEST_RESULT" != "success" ]; then
     exit 1
 fi
 
-if [ "$BACKEND_INTEGRATION_TEST_RESULT" == "failure" ]; then
+if [ "$BACKEND_INTEGRATION_TEST_RESULT" = "failure" ]; then
     echo -e "${RED}❌ backend-integration-test failed${NC}"
     exit 1
 fi
