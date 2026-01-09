@@ -38,10 +38,13 @@ echo -e "${GREEN}✅ Supabase CLI found${NC}"
 echo -e "${GREEN}✅ Project linked${NC}"
 echo ""
 
-# Create rollback migration file
-ROLLBACK_MIGRATION="supabase/migrations/20250101000003_test_rollback_initial_schema.sql"
+# Generate unique timestamp for rollback migration (to avoid conflicts)
+# Format: YYYYMMDDHHMMSS (current date/time)
+ROLLBACK_TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+ROLLBACK_MIGRATION="supabase/migrations/${ROLLBACK_TIMESTAMP}_test_rollback_initial_schema.sql"
 
 echo -e "${YELLOW}Step 1: Creating test rollback migration...${NC}"
+echo -e "${BLUE}   Migration file: ${ROLLBACK_MIGRATION}${NC}"
 
 cat > "$ROLLBACK_MIGRATION" << 'EOF'
 -- Test Rollback Migration for Initial Schema
@@ -174,8 +177,19 @@ echo "  ✅ Rollback migration created"
 echo "  ✅ Rollback applied"
 echo "  ✅ Tables removed (rollback successful)"
 echo ""
+echo -e "${YELLOW}Cleanup:${NC}"
+read -p "Remove test rollback migration file? (yes/no): " cleanup
+
+if [ "$cleanup" = "yes" ]; then
+    rm -f "$ROLLBACK_MIGRATION"
+    echo -e "${GREEN}✅ Test rollback migration removed${NC}"
+else
+    echo -e "${BLUE}ℹ️  Test rollback migration kept at: ${ROLLBACK_MIGRATION}${NC}"
+fi
+
+echo ""
 echo "Next steps:"
 echo "  1. If you re-applied, verify tables exist again"
-echo "  2. Clean up test rollback migration (if not keeping)"
+echo "  2. Clean up test rollback migration file (if not removed)"
 echo "  3. Document rollback procedure"
 
