@@ -5,9 +5,9 @@ This module defines data models for bulk deals and related entities.
 """
 
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field, EmailStr
 from enum import Enum
+
+from pydantic import BaseModel, Field
 
 
 class DealType(str, Enum):
@@ -30,13 +30,16 @@ class BulkDealCreate(BaseModel):
 class BulkDealResponse(BaseModel):
     """Model for bulk deal API response."""
     
-    id: int
+    id: str  # UUID as string
     date: datetime
     symbol: str
+    security_name: str | None = None
     client_name: str
     deal_type: DealType
     quantity: int
     price: float
+    remarks: str | None = None
+    user_id: str | None = None  # UUID as string
     created_at: datetime
     updated_at: datetime
     
