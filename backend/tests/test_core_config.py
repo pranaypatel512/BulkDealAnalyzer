@@ -10,7 +10,12 @@ from app.core.config import get_settings
 
 def test_settings_defaults():
     """Test default settings values."""
-    with patch.dict(os.environ, {}, clear=True):
+    env_vars = {
+        "SUPABASE_URL": "https://test.supabase.co",
+        "SUPABASE_KEY": "test-anon-key",
+        "SECRET_KEY": "test-secret-key",
+    }
+    with patch.dict(os.environ, env_vars, clear=False):
         # Reset cache
         get_settings.cache_clear()
         settings = get_settings()
@@ -43,7 +48,12 @@ def test_settings_from_env():
 
 def test_settings_cors_origins():
     """Test CORS origins default."""
-    with patch.dict(os.environ, {}, clear=True):
+    env_vars = {
+        "SUPABASE_URL": "https://test.supabase.co",
+        "SUPABASE_KEY": "test-anon-key",
+        "SECRET_KEY": "test-secret-key",
+    }
+    with patch.dict(os.environ, env_vars, clear=False):
         get_settings.cache_clear()
         settings = get_settings()
         assert "http://localhost:3000" in settings.cors_origins
