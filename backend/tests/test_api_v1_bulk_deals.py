@@ -37,7 +37,7 @@ def test_bulk_deals_response_format():
     response = client.get("/api/v1/bulk-deals/")
     assert response.status_code == 200
     data = response.json()
-    
+
     # Verify response structure
     assert "success" in data
     assert "message" in data
