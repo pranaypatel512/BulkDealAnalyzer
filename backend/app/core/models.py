@@ -5,9 +5,9 @@ This module defines data models for bulk deals and related entities.
 """
 
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel, Field, EmailStr
 from enum import Enum
+
+from pydantic import BaseModel, Field
 
 
 class DealType(str, Enum):
@@ -18,7 +18,7 @@ class DealType(str, Enum):
 
 class BulkDealCreate(BaseModel):
     """Model for creating a bulk deal."""
-    
+
     date: datetime
     symbol: str = Field(..., min_length=1, max_length=20)
     client_name: str = Field(..., min_length=1)
@@ -29,7 +29,7 @@ class BulkDealCreate(BaseModel):
 
 class BulkDealResponse(BaseModel):
     """Model for bulk deal API response."""
-    
+
     id: int
     date: datetime
     symbol: str
@@ -39,26 +39,26 @@ class BulkDealResponse(BaseModel):
     price: float
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class BulkDealFilter(BaseModel):
     """Model for filtering bulk deals."""
-    
-    symbol: Optional[str] = None
-    deal_type: Optional[DealType] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
-    min_quantity: Optional[int] = None
-    max_quantity: Optional[int] = None
+
+    symbol: str | None = None
+    deal_type: DealType | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    min_quantity: int | None = None
+    max_quantity: int | None = None
 
 
 class BulkDealsListResponse(BaseModel):
     """Model for bulk deals list API response."""
-    
-    deals: List[BulkDealResponse]
+
+    deals: list[BulkDealResponse]
     total: int
     page: int
     page_size: int
