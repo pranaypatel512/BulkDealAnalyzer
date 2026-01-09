@@ -4,3 +4,4 @@
 
 # Test files with fake secrets (for testing gitleaks)
 tests/test_secrets.py.example
+docs/GITLEAKS_TESTING_SUMMARY.md

@@ -2,70 +2,174 @@ name: CI Tests
 
 on:
   pull_request:
-    branches: [ staging, main ]
+    branches: [ dev, staging, main ]
   push:
-    branches: [ staging, main ]
+    branches: [ dev, staging, main ]
 
 jobs:
-  lint-and-unit:
+  ci-backend-lint:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          
+      - name: Install dependencies
+        run: |
+          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
+          
+      - name: Lint with Ruff
+        run: |
+          if [ -f backend/pyproject.toml ] || [ -f backend/setup.cfg ]; then
+            cd backend && ruff check .
+          else
+            echo "No backend linting configuration found"
+            exit 0
+          fi
+
+  ci-backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          
+      - name: Install dependencies
+        run: |
+          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
+          
+      - name: Run unit tests
+        run: |
+          if [ -f backend/pytest.ini ] || [ -d backend/tests ]; then
+            cd backend && pytest tests/ -v --tb=short
+          else
+            echo "No backend tests found"
+            exit 0
+          fi
+
+  ci-backend-integration-test:
+    needs: [ci-backend-lint, ci-backend-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          
+      - name: Install dependencies
+        run: |
+          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
+          
+      - name: Run integration tests
+        run: |
+          if [ -d backend/tests/integration ]; then
+            cd backend && pytest tests/integration -v --tb=short
+          else
+            echo "No integration tests found"
+            exit 0
+          fi
+
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    if: false  # Enable when frontend is ready
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+          node-version: '25'
           
       - name: Install dependencies
         run: |
           if [ -f package.json ]; then npm ci; fi
-          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
           
       - name: Lint
         run: |
-          if [ -f package.json ]; then npm run lint --if-present; fi
-          if [ -f backend/pyproject.toml ] || [ -f backend/setup.cfg ]; then
-            cd backend && ruff check . || true
-          fi
-          
-      - name: Unit tests
-        run: |
-          if [ -f package.json ]; then npm test --if-present; fi
-          if [ -f pytest.ini ] || [ -d backend/tests ]; then
-            cd backend && pytest -q || true
-          fi
+          if [ -f package.json ]; then npm run lint; fi
 
-  integration:
-    needs: lint-and-unit
+  frontend-test:
+    name: Frontend Tests
     runs-on: ubuntu-latest
+    if: false  # Enable when frontend is ready
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.11'
+          node-version: '25'
           
       - name: Install dependencies
         run: |
-          if [ -f backend/requirements.txt ]; then python -m pip install -r backend/requirements.txt; fi
+          if [ -f package.json ]; then npm ci; fi
           
-      - name: Start test DB
+      - name: Run tests
         run: |
-          if [ -f docker-compose.test.yml ]; then
-            docker-compose -f docker-compose.test.yml up -d
+          if [ -f package.json ]; then npm test; fi
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    if: false  # Enable when frontend is ready
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+          
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then npm ci; fi
+          
+      - name: Build
+        run: |
+          if [ -f package.json ]; then npm run build; fi
+
+  # Combined test job for branch protection
+  # This job aggregates all test job results
+  ci-test:
+    runs-on: ubuntu-latest
+    needs: [ci-backend-lint, ci-backend-test, ci-backend-integration-test]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tests passed
+        run: |
+          echo "Checking required test jobs..."
+          echo "ci-backend-lint result: ${{ needs.ci-backend-lint.result }}"
+          echo "ci-backend-test result: ${{ needs.ci-backend-test.result }}"
+          echo "ci-backend-integration-test result: ${{ needs.ci-backend-integration-test.result }}"
+          
+          # ci-backend-lint must succeed
+          if [ "${{ needs.ci-backend-lint.result }}" != "success" ]; then
+            echo "❌ ci-backend-lint failed or was cancelled"
+            exit 1
           fi
           
-      - name: Run integration tests
-        run: |
-          if [ -d backend/tests/integration ]; then
-            cd backend && pytest tests/integration -q || true
+          # ci-backend-test must succeed
+          if [ "${{ needs.ci-backend-test.result }}" != "success" ]; then
+            echo "❌ ci-backend-test failed or was cancelled"
+            exit 1
           fi
+          
+          # ci-backend-integration-test can be skipped, but shouldn't fail
+          if [ "${{ needs.ci-backend-integration-test.result }}" = "failure" ]; then
+            echo "❌ ci-backend-integration-test failed"
+            exit 1
+          fi
+          
+          echo "✅ All required tests passed"
 
 

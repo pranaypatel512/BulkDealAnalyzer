@@ -93,6 +93,19 @@ bulkdeal-analyzer/
 
 See [DEVELOPMENT_WORKFLOW.md](.github/DEVELOPMENT_WORKFLOW.md) for detailed workflow.
 
+### Branch Protection
+
+All protected branches (`main`, `dev`, `staging`) require:
+- ✅ Pull Request (no direct commits)
+- ✅ CI/CD pipeline success
+- ✅ Code review approval (1 for dev/staging, 2 for main)
+
+**Setup Branch Protection**:
+- Quick Guide: [SETUP_BRANCH_PROTECTION.md](.github/SETUP_BRANCH_PROTECTION.md)
+- Detailed Rules: [BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md)
+- **Create/Update Rules**: `./scripts/create_branch_protection.sh` (recommended)
+- **Clear & Recreate**: `./scripts/recreate_branch_protection.sh` (full reset)
+
 ### Quick Start
 
 ```bash
