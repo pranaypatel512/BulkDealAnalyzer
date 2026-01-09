@@ -119,10 +119,12 @@ Based on `dev-doc/BRANCH_STRATEGY.md`:
 **Project Board**: "BulkDeal Analyzer Development"
 
 **Columns**:
-1. 📋 **Backlog** - Planned features
-2. 🔄 **In Progress** - Active development
-3. 👀 **In Review** - PRs open and reviewing
-4. ✅ **Done** - Merged and completed
+1. 📋 **Backlog** - Planned features and tasks (not started)
+2. 📝 **TODO** - Tasks ready to start, assigned to developer
+3. 🔄 **In Progress** - Active development
+4. 👀 **Review** - PRs open and being reviewed
+5. 🧪 **Testing** - Code merged, undergoing testing
+6. ✅ **Done** - Complete and verified
 
 **Fields**:
 - Sprint (dropdown: Sprint 1, Sprint 2, etc.)
@@ -166,8 +168,8 @@ Based on `dev-doc/BRANCH_STRATEGY.md`:
    - Merge to `dev`
 
 6. **Update GitHub Project**
-   - Move card to "Done"
-   - Close issue
+   - Move card: Backlog → TODO → In Progress → Review → Testing → Done
+   - Close issue when moved to "Done"
 
 ## Next Steps
 
@@ -176,3 +178,4 @@ Based on `dev-doc/BRANCH_STRATEGY.md`:
 3. Create issues for Sprint 1 tasks
 4. Start with highest priority task
 5. Create first feature branch
+

@@ -26,10 +26,12 @@ This will:
 3. Name: "BulkDeal Analyzer Development"
 
 **Recommended Columns**:
-1. 📋 **Backlog** - Planned features and tasks
-2. 🔄 **In Progress** - Active development
-3. 👀 **In Review** - PRs open and reviewing
-4. ✅ **Done** - Merged and completed
+1. 📋 **Backlog** - Planned features and tasks (not started)
+2. 📝 **TODO** - Tasks ready to start, assigned to developer
+3. 🔄 **In Progress** - Active development
+4. 👀 **Review** - PRs open and being reviewed
+5. 🧪 **Testing** - Code merged, undergoing testing
+6. ✅ **Done** - Complete and verified
 
 ### 3. Configure Project Fields
 
@@ -74,12 +76,15 @@ This will:
    ```
 
 5. **Update Project Card**:
-   - Move card from "In Progress" to "In Review"
+   - Move card from "In Progress" to "Review" when PR is created
    - Link PR to card (automatically via PR)
 
 6. **After Merge**:
-   - Move card to "Done"
+   - Move card to "Testing" after PR merge
    - Issue auto-closes (if PR says "Closes #123")
+
+7. **After Testing**:
+   - Move card to "Done" after testing complete
 
 ## Branch-to-Project Mapping
 
@@ -90,8 +95,9 @@ This will:
 
 ### PR Tracking
 - PR links to issue: "Closes #123"
-- PR automatically appears in "In Review" column
-- After merge, card moves to "Done"
+- PR automatically appears in "Review" column
+- After merge, card moves to "Testing"
+- After testing, card moves to "Done"
 
 ## Sprint Planning
 
@@ -159,3 +165,4 @@ GitHub Actions can automate:
 - `dev-doc/SPRINT_PLAN.md` - Detailed sprint plan
 - `dev-doc/BRANCH_STRATEGY.md` - Branch naming conventions
 - `scripts/setup_github_project.sh` - Automated setup script
+

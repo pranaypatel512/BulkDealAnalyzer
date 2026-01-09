@@ -28,15 +28,19 @@ When you see:
 
 ### Step 3: Configure Project Columns
 
-After import, you'll have default columns. **Rename them to:**
+After import, you'll have default columns. **Configure them to match this workflow:**
 
-1. 📋 **Backlog** - Planned features and tasks
-2. 🔄 **In Progress** - Active development  
-3. 👀 **In Review** - PRs open and reviewing
-4. ✅ **Done** - Merged and completed
+1. 📋 **Backlog** - Planned features and tasks (not started)
+2. 📝 **TODO** - Tasks ready to start, assigned to developer
+3. 🔄 **In Progress** - Active development
+4. 👀 **Review** - PRs open and being reviewed
+5. 🧪 **Testing** - Code merged, undergoing testing
+6. ✅ **Done** - Complete and verified
 
-**To rename a column:**
-- Click the column header (three dots) → "Edit column" → Rename → Save
+**To configure columns:**
+- **Rename**: Click column header (three dots) → "Edit column" → Rename → Save
+- **Add new column**: Click "+ Add column" → Enter name → Create
+- **Reorder**: Drag column headers to reorder
 
 ### Step 4: Add Custom Fields (Optional but Recommended)
 
@@ -90,9 +94,11 @@ After bulk import, your Sprint 1 issues will be in the project. **Update them:**
 
 3. **Move cards to appropriate columns:**
    - Initially, all should be in "Backlog"
-   - As you start work, move to "In Progress"
-   - When PR is created, move to "In Review"
-   - After merge, move to "Done"
+   - When ready to start, move to "TODO"
+   - When actively coding, move to "In Progress"
+   - When PR is created, move to "Review"
+   - After merge, move to "Testing"
+   - After testing complete, move to "Done"
 
 ## Automatic Features
 
@@ -108,18 +114,22 @@ After setup, verify:
 
 1. ✅ All 4 Sprint 1 issues are in the project
 2. ✅ Issues are in "Backlog" column
-3. ✅ Custom fields are set correctly
-4. ✅ Labels match (sprint-1, backend, frontend, etc.)
+3. ✅ All 6 columns exist: Backlog, TODO, In Progress, Review, Testing, Done
+4. ✅ Custom fields are set correctly
+5. ✅ Labels match (sprint-1, backend, frontend, etc.)
 
 ## Next Steps
 
 Once the project is set up:
 
 1. ✅ Issues are tracked in the project
-2. ✅ Start development: `git checkout -b feature/database-schema-complete`
-3. ✅ Create PR with "Closes #9" when ready
-4. ✅ Move card to "In Review" when PR is created
-5. ✅ Move to "Done" after merge
+2. ✅ Move issue from "Backlog" to "TODO" when ready to start
+3. ✅ Start development: `git checkout -b feature/database-schema-complete`
+4. ✅ Move card to "In Progress" when actively coding
+5. ✅ Create PR with "Closes #9" when ready
+6. ✅ Move card to "Review" when PR is created
+7. ✅ Move to "Testing" after PR merge
+8. ✅ Move to "Done" after testing complete
 
 ---
 
