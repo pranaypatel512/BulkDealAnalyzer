@@ -41,28 +41,35 @@ class Database:
         """Initialize database with optional client."""
         self.client = client or get_supabase_client()
 
-    async def execute_query(
+    def execute_query(
         self,
         table: str,
         operation: str = "select",
         filters: dict[str, Any] | None = None,
         data: dict[str, Any] | list[dict[str, Any]] | None = None,
-    ) -> Any:
+    ) -> Any | None:
         """
         Execute a database query.
+
+        Note: The Supabase client operations are synchronous, so this method
+        is not async. Use get_table() directly for more complex queries.
 
         Args:
             table: Table name
             operation: Operation type (select, insert, update, delete)
-            filters: Query filters
+            filters: Query filters (only equality operations supported for security).
+                     Format: {"field_name": "value"} - uses eq() operation only.
+                     This prevents SQL injection by limiting to safe equality checks.
             data: Data for insert/update operations
 
         Returns:
-            Query result
+            Query result, or None if operation is insert/update/delete without data
         """
         query = self.client.table(table)
 
-        # Apply filters
+        # Apply filters (only equality operations for security)
+        # Note: This intentionally limits to eq() operations to prevent SQL injection.
+        # For more complex queries, use get_table() directly to access full Supabase API.
         if filters:
             for key, value in filters.items():
                 query = query.eq(key, value)

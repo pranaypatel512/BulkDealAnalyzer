@@ -26,14 +26,22 @@ class NotFoundError(BulkDealAnalyzerException):
         )
 
 
-class ValidationError(BulkDealAnalyzerException):
-    """Validation error exception."""
+class BulkDealValidationError(BulkDealAnalyzerException):
+    """Validation error exception for BulkDeal Analyzer.
+
+    Note: Named BulkDealValidationError to avoid shadowing Python's built-in
+    ValidationError and Pydantic's ValidationError.
+    """
 
     def __init__(self, detail: str = "Validation error"):
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=detail,
         )
+
+
+# Alias for backward compatibility (if needed in future)
+ValidationError = BulkDealValidationError
 
 
 class AuthenticationError(BulkDealAnalyzerException):

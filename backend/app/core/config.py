@@ -24,12 +24,14 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
 
     # Database (Supabase)
-    supabase_url: str
-    supabase_key: str
+    # Defaults are for testing/development; override in production via environment variables
+    supabase_url: str = "http://localhost:54321"  # Local Supabase default
+    supabase_key: str = "test-supabase-key"  # Test key
     supabase_service_role_key: str | None = None
 
     # Security
-    secret_key: str
+    # Default is for testing/development only; must be overridden in production
+    secret_key: str = "test-secret-key-change-in-production"
     access_token_expire_minutes: int = 30
 
     model_config = SettingsConfigDict(

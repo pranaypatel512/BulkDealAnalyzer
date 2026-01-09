@@ -2,6 +2,9 @@
 Shared Constants
 
 Common constants used across modules.
+
+Note: DealType is defined as an Enum in app.core.models and should be
+imported from there instead of using constants here.
 """
 
 # Subscription Tiers
@@ -13,13 +16,8 @@ class SubscriptionTier:
     PREMIUM = "premium"
     ENTERPRISE = "enterprise"
 
-
-# Deal Types
-class DealType:
-    """Deal type constants."""
-
-    BUY = "BUY"
-    SELL = "SELL"
+# Note: DealType is defined as an Enum in app.core.models.DealType
+# Import it from there: from app.core.models import DealType
 
 
 # User Roles

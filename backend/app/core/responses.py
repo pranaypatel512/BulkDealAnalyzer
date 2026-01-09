@@ -56,10 +56,10 @@ def error_response(
 
     Args:
         message: Error message
-        errors: List of error details
+        errors: List of error details (None if no errors provided)
 
     Returns:
         ErrorResponse instance
     """
-    return ErrorResponse(message=message, errors=errors or [])
+    return ErrorResponse(message=message, errors=errors)
 

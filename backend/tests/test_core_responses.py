@@ -37,6 +37,14 @@ def test_error_response():
     assert response.errors == errors
 
 
+def test_error_response_no_errors():
+    """Test error response with no errors (should return None)."""
+    response = error_response(message="Something went wrong")
+    assert response.success is False
+    assert response.message == "Something went wrong"
+    assert response.errors is None
+
+
 def test_api_response_inheritance():
     """Test APIResponse inheritance."""
     success = SuccessResponse(data={"test": "data"})
