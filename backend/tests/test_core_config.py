@@ -5,9 +5,7 @@ Tests for Core Configuration Module
 import os
 from unittest.mock import patch
 
-import pytest
-
-from app.core.config import Settings, get_settings
+from app.core.config import get_settings
 
 
 def test_settings_defaults():

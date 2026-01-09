@@ -12,7 +12,7 @@ from supabase import Client, create_client
 from app.core.config import get_settings
 
 
-@lru_cache()
+@lru_cache
 def get_supabase_client() -> Client:
     """Get cached Supabase client instance."""
     settings = get_settings()
@@ -22,7 +22,7 @@ def get_supabase_client() -> Client:
     )
 
 
-@lru_cache()
+@lru_cache
 def get_supabase_admin_client() -> Client:
     """Get Supabase admin client with service role key (bypasses RLS)."""
     settings = get_settings()
