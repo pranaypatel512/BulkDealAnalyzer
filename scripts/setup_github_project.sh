@@ -77,27 +77,61 @@ echo ""
 echo -e "${YELLOW}Step 2: Creating Labels...${NC}"
 echo ""
 
+# Function to create label if it doesn't exist
+create_label() {
+    local name=$1
+    local description=$2
+    local color=$3
+    
+    # Check if label exists
+    if gh api "repos/${REPO_FULL}/labels/${name}" &> /dev/null; then
+        echo -e "${YELLOW}ℹ️  Already exists${NC}"
+        return 0
+    fi
+    
+    # Create label
+    if gh api "repos/${REPO_FULL}/labels" \
+        -f name="${name}" \
+        -f description="${description}" \
+        -f color="${color}" \
+        &> /dev/null; then
+        echo -e "${GREEN}✅${NC}"
+        return 0
+    else
+        echo -e "${RED}❌ Failed${NC}"
+        return 1
+    fi
+}
+
 # Sprint labels
 for sprint in sprint-1 sprint-2 sprint-3; do
     echo -n "Creating label '${sprint}'... "
-    gh label create "${sprint}" --description "Sprint ${sprint:6}" --color "0E8A16" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
+    create_label "${sprint}" "Sprint ${sprint:6}" "0E8A16"
 done
 
 # Module labels
 for module in backend frontend database auth user admin; do
     echo -n "Creating label '${module}'... "
-    gh label create "${module}" --description "${module^} module" --color "1D76DB" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
+    # Capitalize first letter for description
+    desc="${module^} module"
+    create_label "${module}" "${desc}" "1D76DB"
 done
 
 # Priority labels
-gh label create "high-priority" --description "High priority task" --color "B60205" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
-gh label create "medium-priority" --description "Medium priority task" --color "FBCA04" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
-gh label create "low-priority" --description "Low priority task" --color "0E8A16" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
+echo -n "Creating label 'high-priority'... "
+create_label "high-priority" "High priority task" "B60205"
+echo -n "Creating label 'medium-priority'... "
+create_label "medium-priority" "Medium priority task" "FBCA04"
+echo -n "Creating label 'low-priority'... "
+create_label "low-priority" "Low priority task" "0E8A16"
 
 # Type labels
-gh label create "feature" --description "New feature" --color "0E8A16" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
-gh label create "bugfix" --description "Bug fix" --color "B60205" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
-gh label create "enhancement" --description "Enhancement" --color "1D76DB" --repo "${REPO_FULL}" 2>/dev/null || echo -e "${YELLOW}ℹ️  Already exists${NC}"
+echo -n "Creating label 'feature'... "
+create_label "feature" "New feature" "0E8A16"
+echo -n "Creating label 'bugfix'... "
+create_label "bugfix" "Bug fix" "B60205"
+echo -n "Creating label 'enhancement'... "
+create_label "enhancement" "Enhancement" "1D76DB"
 
 echo ""
 
@@ -235,3 +269,4 @@ echo "     git checkout dev"
 echo "     git pull origin dev"
 echo "     git checkout -b feature/database-schema-complete"
 echo ""
+
