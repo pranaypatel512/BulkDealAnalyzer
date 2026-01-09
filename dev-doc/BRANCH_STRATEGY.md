@@ -48,17 +48,47 @@
 
 ## Branch Protection Rules
 
+**See `.github/BRANCH_PROTECTION.md` for detailed protection rules.**
+
+### Summary
+
+| Branch | Direct Commits | PR Required | Approvals | CI Required | Force Push | Deletion |
+|--------|---------------|-------------|-----------|--------------|------------|----------|
+| `main` | ❌ | ✅ | **2** | ✅ | ❌ | ❌ |
+| `dev` | ❌ | ✅ | **1** | ✅ | ❌ | ❌ |
+| `staging` | ❌ | ✅ | **1** | ✅ | ❌ | ❌ |
+| `feature/*` | ✅ | N/A | N/A | On PR | ✅ | ✅ |
+
 ### `main` Branch
-- Require pull request reviews
-- Require status checks to pass
-- Require branches to be up to date
-- No force push
-- No deletion
+- ❌ **No direct commits** - Must use Pull Request
+- ✅ **Require pull request reviews**: 2 approvals minimum
+- ✅ **Require status checks to pass**: All CI/CD checks must pass
+- ✅ **Require branches to be up to date** before merging
+- ✅ **Require conversation resolution** before merging
+- ✅ **Include administrators** (admins must follow rules)
+- ❌ **No force push**
+- ❌ **No deletion**
+- ✅ **Linear history** (squash/rebase only, no merge commits)
 
 ### `dev` Branch
-- Require pull request reviews (optional for team)
-- Require status checks to pass
-- No force push
+- ❌ **No direct commits** - Must use Pull Request
+- ✅ **Require pull request reviews**: 1 approval minimum
+- ✅ **Require status checks to pass**: All CI/CD checks must pass
+- ✅ **Require branches to be up to date** before merging
+- ✅ **Require conversation resolution** before merging
+- ✅ **Include administrators** (admins must follow rules)
+- ❌ **No force push**
+- ❌ **No deletion**
+
+### `staging` Branch
+- ❌ **No direct commits** - Must use Pull Request
+- ✅ **Require pull request reviews**: 1 approval minimum
+- ✅ **Require status checks to pass**: All CI/CD checks must pass
+- ✅ **Require branches to be up to date** before merging
+- ✅ **Require conversation resolution** before merging
+- ✅ **Include administrators** (admins must follow rules)
+- ❌ **No force push**
+- ❌ **No deletion**
 
 ## Initial Setup
 

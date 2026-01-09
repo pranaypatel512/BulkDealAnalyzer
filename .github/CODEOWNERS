@@ -1,0 +1,38 @@
+# CODEOWNERS file for BulkDeal Analyzer
+# This file defines code owners who are automatically requested for review
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owner - all files default to this owner
+* @pranaypatel512
+
+# Backend code
+/backend/ @pranaypatel512
+
+# Frontend code (when implemented)
+/frontend/ @pranaypatel512
+
+# Documentation
+/docs/ @pranaypatel512
+*.md @pranaypatel512
+
+# CI/CD workflows
+/.github/ @pranaypatel512
+/.github/workflows/ @pranaypatel512
+
+# Configuration files
+/.gitignore @pranaypatel512
+/.pre-commit-config.yaml @pranaypatel512
+/pyproject.toml @pranaypatel512
+/package.json @pranaypatel512
+
+# Scripts
+/scripts/ @pranaypatel512
+
+# Security and secrets
+/SECURITY.md @pranaypatel512
+/.gitleaksignore @pranaypatel512
+
+# Database migrations (when implemented)
+/backend/alembic/ @pranaypatel512
+/migrations/ @pranaypatel512
+
