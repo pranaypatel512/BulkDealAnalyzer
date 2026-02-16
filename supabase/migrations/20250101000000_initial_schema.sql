@@ -90,10 +90,10 @@ CREATE POLICY "Users can delete own profile"
 -- RLS POLICIES - BULK DEALS
 -- ============================================================================
 
--- Users can view their own deals
-CREATE POLICY "Users can view own deals"
+-- Anyone can view bulk deals (NSE bulk deal data is public information)
+CREATE POLICY "Anyone can view bulk deals"
     ON bulk_deals FOR SELECT
-    USING (auth.uid() = user_id);
+    USING (true);
 
 -- Users can insert their own deals
 CREATE POLICY "Users can insert own deals"

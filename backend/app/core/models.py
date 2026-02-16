@@ -53,13 +53,13 @@ class UserProfileResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: str | None = None
     user_id: str
     email: str
     full_name: str | None = None
     subscription_tier: str = "free"
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 # =============================================================================
