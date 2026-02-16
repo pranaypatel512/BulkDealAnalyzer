@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -13,6 +15,16 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { signUp, user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.replace('/dashboard');
+    }
+  }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,15 +33,31 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) return;
-    
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
     setLoading(true);
-    
-    // TODO: Implement Supabase auth
-    console.log('Signup attempt:', { email: formData.email, name: formData.name });
-    
-    setTimeout(() => {
+    setError(null);
+
+    const { error: authError } = await signUp(formData.email, formData.password, {
+      display_name: formData.name,
+      full_name: formData.name,
+    });
+
+    if (authError) {
+      setError(authError);
       setLoading(false);
-    }, 1000);
+    } else {
+      router.push('/login?registered=true');
+    }
   };
 
   return (
@@ -57,6 +85,12 @@ export default function SignupPage() {
             <h1 className="text-2xl font-bold mb-2">Create your account</h1>
             <p className="text-[var(--color-text-secondary)]">Start your 14-day free trial</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -102,7 +136,7 @@ export default function SignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[#00d4aa] focus:ring-1 focus:ring-[#00d4aa] transition-colors"
-                placeholder="••••••••"
+                placeholder="********"
                 minLength={8}
                 required
               />
@@ -122,7 +156,7 @@ export default function SignupPage() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[#00d4aa] focus:ring-1 focus:ring-[#00d4aa] transition-colors"
-                placeholder="••••••••"
+                placeholder="********"
                 required
               />
             </div>
@@ -147,10 +181,10 @@ export default function SignupPage() {
               </label>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              size="lg" 
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
               loading={loading}
               disabled={!agreed}
             >
@@ -170,33 +204,16 @@ export default function SignupPage() {
 
         {/* Features List */}
         <div className="mt-8 grid grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-            <svg className="w-4 h-4 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            14-day free trial
-          </div>
-          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-            <svg className="w-4 h-4 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            No credit card
-          </div>
-          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-            <svg className="w-4 h-4 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            Cancel anytime
-          </div>
-          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-            <svg className="w-4 h-4 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            Full access
-          </div>
+          {['14-day free trial', 'No credit card', 'Cancel anytime', 'Full access'].map((feature) => (
+            <div key={feature} className="flex items-center gap-2 text-[var(--color-text-secondary)]">
+              <svg className="w-4 h-4 text-[#00d4aa]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {feature}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
-
