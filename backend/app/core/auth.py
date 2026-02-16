@@ -4,10 +4,11 @@ Authentication Module
 Handles Supabase JWT verification and user extraction for protected routes.
 """
 
-from typing import Annotated
+from __future__ import annotations
+
+from typing import Annotated, Any
 
 from fastapi import Depends, Header
-from gotrue.types import User as SupabaseUser  # noqa: I001
 
 from app.core.config import get_settings
 from app.core.exceptions import AuthenticationError
@@ -23,7 +24,7 @@ def _get_supabase_client():
 
 async def get_current_user(
     authorization: Annotated[str | None, Header()] = None,
-) -> SupabaseUser:
+) -> Any:
     """
     Extract and verify the current user from the Authorization header.
 
@@ -34,7 +35,7 @@ async def get_current_user(
         authorization: Bearer token from the Authorization header
 
     Returns:
-        Authenticated Supabase user object
+        Authenticated Supabase user object (gotrue.types.User)
 
     Raises:
         AuthenticationError: If token is missing, invalid, or expired
@@ -65,7 +66,7 @@ async def get_current_user(
 
 async def get_optional_user(
     authorization: Annotated[str | None, Header()] = None,
-) -> SupabaseUser | None:
+) -> Any | None:
     """
     Optionally extract the current user. Returns None if no token is provided.
 
@@ -81,5 +82,5 @@ async def get_optional_user(
 
 
 # Type aliases for cleaner dependency injection
-CurrentUser = Annotated[SupabaseUser, Depends(get_current_user)]
-OptionalUser = Annotated[SupabaseUser | None, Depends(get_optional_user)]
+CurrentUser = Annotated[Any, Depends(get_current_user)]
+OptionalUser = Annotated[Any | None, Depends(get_optional_user)]
