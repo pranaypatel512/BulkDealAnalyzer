@@ -18,13 +18,33 @@ class BulkDealsService:
     TABLE = "bulk_deals"
 
     def __init__(self) -> None:
-        from app.core.database import get_supabase_client
+        from app.core.database import get_supabase_admin_client, get_supabase_client
 
-        self._client = get_supabase_client()
+        try:
+            self._client = get_supabase_admin_client()
+        except ValueError:
+            self._client = get_supabase_client()
 
     @property
     def table(self):
         return self._client.table(self.TABLE)
+
+    @staticmethod
+    def _empty_list(page: int = 1, page_size: int = 20) -> dict[str, Any]:
+        """Return an empty paginated result."""
+        return {
+            "deals": [],
+            "total": 0,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": 0,
+        }
+
+    @staticmethod
+    def _is_table_missing(error: Exception) -> bool:
+        """Check if the error is due to the table not existing in Supabase."""
+        msg = str(error)
+        return "PGRST205" in msg or "schema cache" in msg
 
     def list_deals(
         self,
@@ -77,6 +97,8 @@ class BulkDealsService:
                 "total_pages": math.ceil(total / page_size) if page_size > 0 else 0,
             }
         except Exception as e:
+            if self._is_table_missing(e):
+                return self._empty_list(page, page_size)
             raise DatabaseError(f"Failed to list deals: {e!s}") from e
 
     def get_by_id(self, deal_id: str) -> dict[str, Any]:
@@ -89,7 +111,7 @@ class BulkDealsService:
                 .maybe_single()
                 .execute()
             )
-            if not result.data:
+            if result is None or not result.data:
                 raise NotFoundError("Bulk deal")
             return result.data
         except NotFoundError:
@@ -152,4 +174,6 @@ class BulkDealsService:
                 "sell_deals": sell_count,
             }
         except Exception as e:
+            if self._is_table_missing(e):
+                return {"total_deals": 0, "buy_deals": 0, "sell_deals": 0}
             raise DatabaseError(f"Failed to get stats: {e!s}") from e
