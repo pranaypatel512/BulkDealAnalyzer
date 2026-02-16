@@ -1,19 +1,70 @@
 """
-Pydantic Models for Bulk Deals
+Pydantic Models for BulkDeal Analyzer
 
-This module defines data models for bulk deals and related entities.
+This module defines data models for bulk deals, user profiles, and related entities.
 """
 
-from datetime import datetime
-from enum import StrEnum
+from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
+try:
+    from enum import StrEnum
+except ImportError:  # Python < 3.11
+    from enum import Enum
+
+    class StrEnum(str, Enum):  # type: ignore[no-redef]  # noqa: UP042
+        """Backport of StrEnum for Python < 3.11."""
+
+
+# =============================================================================
+# Deal Types
+# =============================================================================
 
 
 class DealType(StrEnum):
     """Deal type enumeration."""
     BUY = "BUY"
     SELL = "SELL"
+
+
+# =============================================================================
+# User Profile Models
+# =============================================================================
+
+
+class UserProfileCreate(BaseModel):
+    """Model for creating a user profile."""
+
+    full_name: str | None = Field(None, max_length=255)
+
+
+class UserProfileUpdate(BaseModel):
+    """Model for updating a user profile."""
+
+    full_name: str | None = Field(None, max_length=255)
+    subscription_tier: str | None = Field(None, pattern=r"^(free|premium|enterprise)$")
+
+
+class UserProfileResponse(BaseModel):
+    """Model for user profile API response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    user_id: str
+    email: str
+    full_name: str | None = None
+    subscription_tier: str = "free"
+    created_at: datetime
+    updated_at: datetime
+
+
+# =============================================================================
+# Bulk Deal Models
+# =============================================================================
 
 
 class BulkDealCreate(BaseModel):
@@ -30,6 +81,8 @@ class BulkDealCreate(BaseModel):
 class BulkDealResponse(BaseModel):
     """Model for bulk deal API response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str  # UUID as string (matches database schema)
     date: datetime
     symbol: str
@@ -42,9 +95,6 @@ class BulkDealResponse(BaseModel):
     user_id: str | None = None  # UUID as string
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class BulkDealFilter(BaseModel):
@@ -66,5 +116,3 @@ class BulkDealsListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
-
-

@@ -19,7 +19,7 @@ def _get_supabase_client():
     from supabase import create_client
 
     settings = get_settings()
-    return create_client(url=settings.supabase_url, key=settings.supabase_key)
+    return create_client(settings.supabase_url, settings.supabase_key)
 
 
 async def get_current_user(
