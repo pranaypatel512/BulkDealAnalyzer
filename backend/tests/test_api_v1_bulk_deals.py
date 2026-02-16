@@ -170,3 +170,93 @@ def test_parse_requires_auth():
         params={"csv_content": "Date,Symbol\n2026-01-01,TEST"},
     )
     assert response.status_code == 401
+
+
+# ---- GET /bulk-deals/analytics/* ----
+
+
+TOP_SYMBOLS_RESPONSE = [
+    {
+        "symbol": "RELIANCE",
+        "total_quantity": 500000,
+        "deal_count": 10,
+        "buy_count": 6,
+        "sell_count": 4,
+    },
+]
+
+DAILY_TREND_RESPONSE = [
+    {
+        "date": "2026-02-16",
+        "total_deals": 5,
+        "buy_deals": 3,
+        "sell_deals": 2,
+        "total_quantity": 100000,
+        "total_value": 245000000.0,
+    },
+]
+
+PRICE_DIST_RESPONSE = [
+    {"range": "0-50", "count": 5},
+    {"range": "50-100", "count": 12},
+    {"range": "100-500", "count": 30},
+]
+
+
+def test_top_symbols():
+    """GET /analytics/top-symbols returns top symbols."""
+    with patch(
+        "app.api.v1.bulk_deals._get_service",
+    ) as mock_svc_factory:
+        mock_svc = MagicMock()
+        mock_svc.get_top_symbols.return_value = TOP_SYMBOLS_RESPONSE
+        mock_svc_factory.return_value = mock_svc
+
+        response = client.get(
+            "/api/v1/bulk-deals/analytics/top-symbols",
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert len(data["data"]) == 1
+    assert data["data"][0]["symbol"] == "RELIANCE"
+
+
+def test_daily_trend():
+    """GET /analytics/daily-trend returns daily data."""
+    with patch(
+        "app.api.v1.bulk_deals._get_service",
+    ) as mock_svc_factory:
+        mock_svc = MagicMock()
+        mock_svc.get_daily_trend.return_value = DAILY_TREND_RESPONSE
+        mock_svc_factory.return_value = mock_svc
+
+        response = client.get(
+            "/api/v1/bulk-deals/analytics/daily-trend?days=7",
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert len(data["data"]) == 1
+    assert data["data"][0]["total_deals"] == 5
+
+
+def test_price_distribution():
+    """GET /analytics/price-distribution returns ranges."""
+    with patch(
+        "app.api.v1.bulk_deals._get_service",
+    ) as mock_svc_factory:
+        mock_svc = MagicMock()
+        mock_svc.get_price_distribution.return_value = PRICE_DIST_RESPONSE
+        mock_svc_factory.return_value = mock_svc
+
+        response = client.get(
+            "/api/v1/bulk-deals/analytics/price-distribution",
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert len(data["data"]) == 3

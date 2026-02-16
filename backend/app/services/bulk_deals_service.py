@@ -177,3 +177,140 @@ class BulkDealsService:
             if self._is_table_missing(e):
                 return {"total_deals": 0, "buy_deals": 0, "sell_deals": 0}
             raise DatabaseError(f"Failed to get stats: {e!s}") from e
+
+    def get_top_symbols(
+        self,
+        *,
+        limit: int = 10,
+        deal_type: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Get top symbols by deal volume."""
+        try:
+            query = self.table.select("symbol,quantity,deal_type")
+            if deal_type:
+                query = query.eq("deal_type", deal_type.upper())
+            result = query.execute()
+
+            if not result.data:
+                return []
+
+            totals: dict[str, dict[str, Any]] = {}
+            for row in result.data:
+                sym = row["symbol"]
+                if sym not in totals:
+                    totals[sym] = {
+                        "symbol": sym,
+                        "total_quantity": 0,
+                        "deal_count": 0,
+                        "buy_count": 0,
+                        "sell_count": 0,
+                    }
+                totals[sym]["total_quantity"] += row.get("quantity", 0)
+                totals[sym]["deal_count"] += 1
+                if row.get("deal_type") == "BUY":
+                    totals[sym]["buy_count"] += 1
+                else:
+                    totals[sym]["sell_count"] += 1
+
+            ranked = sorted(
+                totals.values(),
+                key=lambda x: x["deal_count"],
+                reverse=True,
+            )
+            return ranked[:limit]
+        except Exception as e:
+            if self._is_table_missing(e):
+                return []
+            raise DatabaseError(
+                f"Failed to get top symbols: {e!s}",
+            ) from e
+
+    def get_daily_trend(
+        self,
+        *,
+        days: int = 30,
+    ) -> list[dict[str, Any]]:
+        """Get daily deal counts and volume for trending chart."""
+        try:
+            from datetime import datetime, timedelta
+
+            end = datetime.now()
+            start = end - timedelta(days=days)
+            start_str = start.strftime("%Y-%m-%d")
+
+            result = (
+                self.table
+                .select("date,deal_type,quantity,price")
+                .gte("date", start_str)
+                .order("date", desc=False)
+                .execute()
+            )
+
+            if not result.data:
+                return []
+
+            daily: dict[str, dict[str, Any]] = {}
+            for row in result.data:
+                dt = row["date"]
+                if dt not in daily:
+                    daily[dt] = {
+                        "date": dt,
+                        "total_deals": 0,
+                        "buy_deals": 0,
+                        "sell_deals": 0,
+                        "total_quantity": 0,
+                        "total_value": 0.0,
+                    }
+                daily[dt]["total_deals"] += 1
+                qty = row.get("quantity", 0)
+                price = row.get("price", 0)
+                daily[dt]["total_quantity"] += qty
+                daily[dt]["total_value"] += qty * price
+                if row.get("deal_type") == "BUY":
+                    daily[dt]["buy_deals"] += 1
+                else:
+                    daily[dt]["sell_deals"] += 1
+
+            return sorted(
+                daily.values(),
+                key=lambda x: x["date"],
+            )
+        except Exception as e:
+            if self._is_table_missing(e):
+                return []
+            raise DatabaseError(
+                f"Failed to get daily trend: {e!s}",
+            ) from e
+
+    def get_price_distribution(self) -> list[dict[str, Any]]:
+        """Get price range distribution for histogram."""
+        try:
+            result = self.table.select("price").execute()
+            if not result.data:
+                return []
+
+            prices = [r["price"] for r in result.data if r.get("price")]
+            if not prices:
+                return []
+
+            buckets = [
+                ("0-50", 0, 50),
+                ("50-100", 50, 100),
+                ("100-500", 100, 500),
+                ("500-1000", 500, 1000),
+                ("1000-2500", 1000, 2500),
+                ("2500-5000", 2500, 5000),
+                ("5000+", 5000, float("inf")),
+            ]
+
+            distribution = []
+            for label, low, high in buckets:
+                count = sum(1 for p in prices if low <= p < high)
+                distribution.append({"range": label, "count": count})
+            return distribution
+        except Exception as e:
+            if self._is_table_missing(e):
+                return []
+            raise DatabaseError(
+                f"Failed to get price distribution: {e!s}",
+            ) from e
