@@ -5,12 +5,12 @@ This module defines data models for bulk deals and related entities.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class DealType(str, Enum):
+class DealType(StrEnum):
     """Deal type enumeration."""
     BUY = "BUY"
     SELL = "SELL"
