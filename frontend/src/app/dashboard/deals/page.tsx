@@ -32,12 +32,36 @@ interface DealStats {
   sell_deals: number;
 }
 
+interface FetchResult {
+  status: string;
+  fetched: number;
+  imported: number;
+  skipped: number;
+  errors: string[];
+  message: string;
+}
+
+interface FetchHistoryItem {
+  id: string;
+  source: string;
+  status: string;
+  deals_fetched: number;
+  deals_imported: number;
+  deals_skipped: number;
+  error_message: string | null;
+  created_at: string;
+}
+
 export default function BulkDealsPage() {
   const { user, signOut, getAccessToken } = useAuth();
   const [data, setData] = useState<DealsResponse | null>(null);
   const [stats, setStats] = useState<DealStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fetching, setFetching] = useState(false);
+  const [fetchResult, setFetchResult] = useState<FetchResult | null>(null);
+  const [fetchHistory, setFetchHistory] = useState<FetchHistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   // Filters
   const [symbol, setSymbol] = useState('');
@@ -119,6 +143,41 @@ export default function BulkDealsPage() {
     setPage(1);
   };
 
+  const handleFetchFromNSE = useCallback(async () => {
+    try {
+      setFetching(true);
+      setFetchResult(null);
+      setError(null);
+      const token = await getAccessToken();
+      const result = await api.post<FetchResult>(
+        '/bulk-deals/fetch',
+        {},
+        token ?? undefined,
+      );
+      setFetchResult(result);
+      // Refresh deals and stats after fetch
+      fetchDeals();
+      fetchStats();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch from NSE');
+    } finally {
+      setFetching(false);
+    }
+  }, [getAccessToken, fetchDeals, fetchStats]);
+
+  const loadFetchHistory = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      const result = await api.get<FetchHistoryItem[]>(
+        '/bulk-deals/fetch-history?limit=10',
+        token ?? undefined,
+      );
+      setFetchHistory(result);
+    } catch {
+      // Non-critical
+    }
+  }, [getAccessToken]);
+
   const SortIcon = ({ field }: { field: string }) => {
     if (sortBy !== field) return <span className="text-[var(--color-text-muted)] ml-1">&#8597;</span>;
     return <span className="text-[#00d4aa] ml-1">{sortOrder === 'asc' ? '&#9650;' : '&#9660;'}</span>;
@@ -184,7 +243,108 @@ export default function BulkDealsPage() {
               <h1 className="text-2xl font-bold">Bulk Deals</h1>
               <p className="text-[var(--color-text-secondary)]">Browse and filter NSE bulk deals data</p>
             </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setShowHistory(!showHistory);
+                  if (!showHistory) loadFetchHistory();
+                }}
+                className="px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+              >
+                {showHistory ? 'Hide History' : 'Fetch History'}
+              </button>
+              <button
+                onClick={handleFetchFromNSE}
+                disabled={fetching}
+                className="px-4 py-2 rounded-lg bg-[#00d4aa] text-[#0a0e14] text-sm font-medium hover:bg-[#00b894] transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {fetching ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-[#0a0e14] border-t-transparent rounded-full animate-spin" />
+                    Fetching...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Fetch from NSE
+                  </>
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Fetch Result Banner */}
+          {fetchResult && (
+            <div className={`mb-4 p-4 rounded-lg border ${
+              fetchResult.status === 'success'
+                ? 'bg-[#00d4aa]/10 border-[#00d4aa]/20 text-[#00d4aa]'
+                : 'bg-red-500/10 border-red-500/20 text-red-400'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-medium">{fetchResult.message}</span>
+                  {fetchResult.status === 'success' && fetchResult.fetched > 0 && (
+                    <span className="ml-3 text-sm opacity-80">
+                      Fetched: {fetchResult.fetched} | Imported: {fetchResult.imported} | Skipped: {fetchResult.skipped}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setFetchResult(null)}
+                  className="text-current opacity-60 hover:opacity-100"
+                >
+                  &times;
+                </button>
+              </div>
+              {fetchResult.errors.length > 0 && (
+                <div className="mt-2 text-sm opacity-80">
+                  {fetchResult.errors.slice(0, 3).map((e, i) => (
+                    <div key={i}>{e}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fetch History Panel */}
+          {showHistory && (
+            <div className="card p-4 mb-6">
+              <h3 className="text-sm font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
+                Recent Fetch History
+              </h3>
+              {fetchHistory.length === 0 ? (
+                <p className="text-sm text-[var(--color-text-muted)]">No fetch history yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {fetchHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between py-2 px-3 rounded-lg bg-[var(--color-bg-tertiary)]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`inline-block w-2 h-2 rounded-full ${
+                          item.status === 'success' ? 'bg-[#00d4aa]' : 'bg-red-500'
+                        }`} />
+                        <span className="text-sm font-mono">
+                          {item.source === 'nse_api' ? 'NSE API' : 'CSV Upload'}
+                        </span>
+                        <span className="text-xs text-[var(--color-text-muted)]">
+                          +{item.deals_imported} imported, {item.deals_skipped} skipped
+                        </span>
+                      </div>
+                      <span className="text-xs text-[var(--color-text-muted)]">
+                        {new Date(item.created_at).toLocaleString('en-IN', {
+                          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Stats Cards */}
           {stats && (

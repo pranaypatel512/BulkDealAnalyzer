@@ -10,12 +10,17 @@ from app.core.auth import CurrentUser, OptionalUser
 from app.core.parser import parse_csv_content
 from app.core.responses import success_response
 from app.services.bulk_deals_service import BulkDealsService
+from app.services.nse_fetcher import NSEFetcher
 
 router = APIRouter()
 
 
 def _get_service() -> BulkDealsService:
     return BulkDealsService()
+
+
+def _get_fetcher() -> NSEFetcher:
+    return NSEFetcher()
 
 
 @router.get("/")
@@ -57,6 +62,17 @@ async def get_deal_stats(_user: OptionalUser):
     service = _get_service()
     stats = service.get_stats()
     return success_response(data=stats, message="Deal statistics retrieved")
+
+
+@router.get("/fetch-history")
+async def get_fetch_history(
+    _user: OptionalUser,
+    limit: int = Query(20, ge=1, le=100, description="Number of records"),
+):
+    """Get recent data fetch history."""
+    fetcher = _get_fetcher()
+    history = fetcher.get_fetch_history(limit=limit)
+    return success_response(data=history, message="Fetch history retrieved")
 
 
 @router.get("/{deal_id}")
@@ -129,3 +145,29 @@ async def import_deals(user: CurrentUser, csv_content: str):
         },
         message=f"Imported {insert_result['inserted']} deals",
     )
+
+
+@router.post("/fetch")
+async def fetch_from_nse(user: CurrentUser):
+    """
+    Fetch latest bulk deals from NSE India and import into the database.
+
+    Requires authentication. Fetches today's bulk deals from the NSE
+    snapshot API, deduplicates against existing data, and imports new deals.
+    """
+    fetcher = _get_fetcher()
+    result = await fetcher.fetch_and_import(user_id=str(user.id))
+    return success_response(data=result, message=result.get("message", "Fetch complete"))
+
+
+@router.post("/upload-csv")
+async def upload_csv(user: CurrentUser, csv_content: str):
+    """
+    Upload CSV content and import deals with deduplication.
+
+    Unlike /import, this endpoint deduplicates against existing database
+    records before inserting.
+    """
+    fetcher = _get_fetcher()
+    result = fetcher.import_from_csv(csv_content, user_id=str(user.id))
+    return success_response(data=result, message=result.get("message", "Import complete"))
