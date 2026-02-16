@@ -30,6 +30,9 @@ export default function LoginPage() {
     if (searchParams.get('registered') === 'true') {
       setMessage('Account created! Please check your email to verify.');
     }
+    if (searchParams.get('reset') === 'true') {
+      setMessage('Password reset successfully! You can now sign in with your new password.');
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
