@@ -16,10 +16,7 @@ from app.core.config import get_settings
 def get_supabase_client() -> Client:
     """Get cached Supabase client instance."""
     settings = get_settings()
-    return create_client(
-        url=settings.supabase_url,
-        key=settings.supabase_key,
-    )
+    return create_client(settings.supabase_url, settings.supabase_key)
 
 
 @lru_cache
@@ -28,10 +25,7 @@ def get_supabase_admin_client() -> Client:
     settings = get_settings()
     if not settings.supabase_service_role_key:
         raise ValueError("SUPABASE_SERVICE_ROLE_KEY not configured")
-    return create_client(
-        url=settings.supabase_url,
-        key=settings.supabase_service_role_key,
-    )
+    return create_client(settings.supabase_url, settings.supabase_service_role_key)
 
 
 class Database:
@@ -96,6 +90,7 @@ class Database:
         return self.client.table(table_name)
 
 
-# Global database instance
-db = Database()
+def get_database() -> Database:
+    """Get a Database instance (uses the cached Supabase client)."""
+    return Database()
 
