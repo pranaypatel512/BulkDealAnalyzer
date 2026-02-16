@@ -1,6 +1,6 @@
 # FastAPI and server
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
@@ -9,7 +9,7 @@ supabase>=2.0.0
 psycopg2-binary>=2.9.9
 
 # HTTP client
-httpx>=0.25.0
+httpx>=0.28.0
 
 # Testing
 pytest>=7.4.0
@@ -20,5 +20,3 @@ ruff>=0.1.0
 
 # Date/time
 python-dateutil>=2.8.2
-
-
