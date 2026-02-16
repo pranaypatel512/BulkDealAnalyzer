@@ -75,6 +75,50 @@ async def get_fetch_history(
     return success_response(data=history, message="Fetch history retrieved")
 
 
+@router.get("/analytics/top-symbols")
+async def get_top_symbols(
+    _user: OptionalUser,
+    limit: int = Query(10, ge=1, le=50, description="Number of symbols"),
+    deal_type: str | None = Query(
+        None,
+        pattern="^(BUY|SELL)$",
+        description="Filter by BUY or SELL",
+    ),
+):
+    """Get top symbols by deal volume for bar chart."""
+    service = _get_service()
+    data = service.get_top_symbols(limit=limit, deal_type=deal_type)
+    return success_response(
+        data=data,
+        message="Top symbols retrieved",
+    )
+
+
+@router.get("/analytics/daily-trend")
+async def get_daily_trend(
+    _user: OptionalUser,
+    days: int = Query(30, ge=1, le=365, description="Number of days"),
+):
+    """Get daily deal trend for line/area chart."""
+    service = _get_service()
+    data = service.get_daily_trend(days=days)
+    return success_response(
+        data=data,
+        message="Daily trend retrieved",
+    )
+
+
+@router.get("/analytics/price-distribution")
+async def get_price_distribution(_user: OptionalUser):
+    """Get price range distribution for histogram."""
+    service = _get_service()
+    data = service.get_price_distribution()
+    return success_response(
+        data=data,
+        message="Price distribution retrieved",
+    )
+
+
 @router.get("/{deal_id}")
 async def get_bulk_deal(deal_id: str, _user: OptionalUser):
     """Get a specific bulk deal by ID."""
