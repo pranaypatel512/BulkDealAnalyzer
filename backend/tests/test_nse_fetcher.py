@@ -73,15 +73,22 @@ class TestNSEJsonToCsv:
     def test_skips_invalid_rows_empty_fields(self, mock_supabase):
         """Rows with empty date/symbol/client_name or zero qty/price are skipped."""
         deals = [
-            {"BD_DT_DATE": "", "BD_SYMBOL": "", "BD_CLIENT_NAME": "", "BD_BUY_SELL": "BUY", "BD_QTY_TRD": 0, "BD_TP_WATP": 0},
-            {"BD_DT_DATE": "16-Feb-2026", "BD_SYMBOL": "REL", "BD_CLIENT_NAME": "ABC", "BD_BUY_SELL": "BUY", "BD_QTY_TRD": 100, "BD_TP_WATP": 2500.0},
+            {
+                "BD_DT_DATE": "", "BD_SYMBOL": "", "BD_CLIENT_NAME": "",
+                "BD_BUY_SELL": "BUY", "BD_QTY_TRD": 0, "BD_TP_WATP": 0,
+            },
+            {
+                "BD_DT_DATE": "16-Feb-2026", "BD_SYMBOL": "REL",
+                "BD_CLIENT_NAME": "ABC", "BD_BUY_SELL": "BUY",
+                "BD_QTY_TRD": 100, "BD_TP_WATP": 2500.0,
+            },
         ]
         csv = mock_supabase._nse_json_to_csv(deals)
         lines = csv.strip().split("\n")
         assert len(lines) == 2  # header + 1 valid row
         assert "REL" in lines[1]
 
-    def test_camelCase_field_names(self, mock_supabase):
+    def test_camel_case_field_names(self, mock_supabase):
         """Supports camelCase NSE API fields (date, symbol, clientName, buySell, qty, watp)."""
         deals = [
             {

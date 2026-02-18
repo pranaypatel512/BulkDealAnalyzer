@@ -84,7 +84,8 @@ class WatchlistService:
         except Exception as e:
             if self._is_table_missing(e):
                 raise DatabaseError(
-                    "Watchlist table is not set up. Please run the Supabase migration: supabase/migrations/20250216000001_watchlist.sql"
+                    "Watchlist table is not set up. Please run the Supabase migration: "
+                    "supabase/migrations/20250216000001_watchlist.sql"
                 ) from e
             raise DatabaseError(f"Failed to add watchlist item: {e!s}") from e
 

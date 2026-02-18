@@ -4,7 +4,6 @@ import csv
 import io
 from typing import Any
 
-
 CSV_HEADER = [
     "Date",
     "Symbol",

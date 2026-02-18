@@ -6,7 +6,16 @@ Main router for API version 1 endpoints.
 
 from fastapi import APIRouter
 
-from app.api.v1 import alerts, auth, block_deals, bulk_deals, health, profile, short_selling, watchlist
+from app.api.v1 import (
+    alerts,
+    auth,
+    block_deals,
+    bulk_deals,
+    health,
+    profile,
+    short_selling,
+    watchlist,
+)
 
 api_router = APIRouter()
 
