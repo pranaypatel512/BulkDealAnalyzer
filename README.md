@@ -92,6 +92,19 @@ With the backend running (e.g. `cd backend && uvicorn app.main:app --reload`):
 
 Without a server (in-process): `cd backend && pytest tests/test_smoke.py -v`
 
+### Frontend E2E (Playwright)
+
+With the frontend running (e.g. `cd frontend && npm run dev`):
+
+```bash
+cd frontend
+npx playwright install   # one-time: install browser binaries
+npm run e2e              # run smoke tests (home, login link, dashboard redirect)
+npm run e2e:ui           # run with Playwright UI
+```
+
+Set `PLAYWRIGHT_BASE_URL` to point at a different origin (e.g. `http://localhost:3000`).
+
 ## Development
 
 ### Getting Started
