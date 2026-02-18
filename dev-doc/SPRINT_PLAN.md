@@ -103,7 +103,7 @@ Add small enhancements and prepare for larger backlog items.
 
 ### Tasks
 - [x] Document smoke test and migrations in README (scripts/smoke_test_backend.sh, pytest test_smoke.py, supabase/MIGRATIONS.md)
-- [ ] E2E test (e.g. Playwright: login → Analytics → Export) if desired
+- [x] E2E test (Playwright: smoke – home, login link, dashboard redirect)
 - [ ] NSE short-selling response keys tune-up when API shape is confirmed
 - [ ] Other PRD items: AI Analyzer, admin panel, subscription tiers (as prioritized)
 
