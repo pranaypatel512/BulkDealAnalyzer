@@ -25,7 +25,7 @@
 **Sprint 6**: ✅ COMPLETE  
 - Export CSV loading state, API docs in README, smoke tests (pytest + script), watchlist migration idempotent, Deal type filter on Analytics
 
-**Next**: Sprint 7 – Enhancements & next features
+**Next**: Sprint 7 – Wrap up E2E PR (#38) and move into Sprint 8 (Admin Module)
 
 ---
 
@@ -81,7 +81,7 @@ Complete foundation setup and basic backend/frontend structure
 - [x] Backend tests for block_deals and short_selling APIs
 - [x] Full filtered export (GET …/export-csv with filters, all segments)
 - [x] Password reset flow (forgot-password + reset-password pages)
-- [ ] Tune NSE short-selling response keys if API shape differs (optional, when needed)
+- [x] Tune NSE short-selling response keys + normalize BUY/SELL (implemented later in Sprint 7)
 
 ---
 
@@ -103,9 +103,86 @@ Add small enhancements and prepare for larger backlog items.
 
 ### Tasks
 - [x] Document smoke test and migrations in README (scripts/smoke_test_backend.sh, pytest test_smoke.py, supabase/MIGRATIONS.md)
-- [x] E2E test (Playwright: smoke – home, login link, dashboard redirect)
-- [ ] NSE short-selling response keys tune-up when API shape is confirmed
-- [ ] Other PRD items: AI Analyzer, admin panel, subscription tiers (as prioritized)
+- [ ] E2E test (Playwright smoke) (PR #38 open): home loads, Sign In → /login, /dashboard → /login when unauthenticated
+- [x] NSE short-selling response keys tune-up: handle key variants + normalize Bought/Sold → BUY/SELL (merged in PR #36)
+- [ ] Decide when to run Playwright in CI (optional): manual/local only vs add a GitHub Action job
+- [ ] Other PRD items (as prioritized): AI Analyzer, admin panel, subscription tiers
+
+---
+
+## Sprint 8: Admin Module (Planned)
+
+### Goal
+Admin can manage system and users (basic back-office).
+
+### Tasks
+- [ ] Define admin roles/permissions (Supabase roles/claims) and RLS strategy
+- [ ] Backend admin endpoints: user management, data management, system settings
+- [ ] Frontend admin area (route group) with basic dashboard + tables
+- [ ] Audit logging for admin actions (who/what/when)
+
+---
+
+## Sprint 9: AI Analyzer (Planned)
+
+### Goal
+AI-powered natural language querying and insights over deals data.
+
+### Tasks
+- [ ] AI SDK setup + server route for streaming chat
+- [ ] Define tool-calls for “query deals / stats / explanations”
+- [ ] AI Analyzer UI: chat interface, suggested prompts, loading/streaming UX
+- [ ] Safety: rate limits, prompt injection guardrails, logging
+
+---
+
+## Sprint 10: Monetization (Planned)
+
+### Goal
+Subscription tiers, feature gating, and billing pages.
+
+### Tasks
+- [ ] Subscription plans and gating rules (free/pro/etc.)
+- [ ] Stripe integration + webhook handling
+- [ ] Billing UI (manage subscription, invoices)
+- [ ] Referral system (optional)
+
+---
+
+## Sprint 11: Security & Polish (Planned)
+
+### Goal
+Hardening, performance, and quality gates.
+
+### Tasks
+- [ ] Expand test coverage (unit + integration) and add a minimal E2E CI gate if desired
+- [ ] Observability: structured logging, request IDs, error tracking
+- [ ] Performance tuning: pagination defaults, DB indexes, caching strategy (if needed)
+- [ ] Documentation: testing guide, runbooks, onboarding
+
+---
+
+## Sprint 12: Marketing Website (Planned / Optional)
+
+### Goal
+Public landing pages, docs/resources, and SEO.
+
+### Tasks
+- [ ] Landing page + feature pages
+- [ ] Blog/resources (optional)
+- [ ] Help center/FAQ (optional)
+
+---
+
+## Sprint 13: Launch Preparation (Planned)
+
+### Goal
+Prepare for production release workflow.
+
+### Tasks
+- [ ] Staging validation checklist + release checklist
+- [ ] Load testing + security audit pass
+- [ ] Final bug-fix sprint
 
 ---
 
@@ -182,6 +259,7 @@ Based on `dev-doc/BRANCH_STRATEGY.md`:
 
 1. **Apply migrations** (if not done): `supabase db push`. See [supabase/MIGRATIONS.md](../supabase/MIGRATIONS.md).
 2. **Verify backend**: Run `./scripts/smoke_test_backend.sh` with backend up, or `cd backend && pytest tests/test_smoke.py -v`.
-3. **Sprint 7**: Next pick — E2E (Playwright), NSE short-selling tune-up, or a PRD feature (AI Analyzer, admin, etc.).
-4. **Optional**: GitHub Project board and Sprint 7 issues.
+3. **Sprint 7**: Merge PR #38 (Playwright E2E smoke) and (optional) decide CI strategy for E2E.
+4. **Sprint 8+**: Next pick — Admin Module (Sprint 8) or AI Analyzer (Sprint 9), then Monetization (Sprint 10).
+5. **Optional**: GitHub Project board and Sprint 7 issues.
 
