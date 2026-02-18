@@ -101,6 +101,69 @@ class BulkDealsService:
                 return self._empty_list(page, page_size)
             raise DatabaseError(f"Failed to list deals: {e!s}") from e
 
+    def export_deals(
+        self,
+        *,
+        symbol: str | None = None,
+        deal_type: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        sort_by: str = "date",
+        sort_order: str = "desc",
+        max_rows: int = 10_000,
+        batch_size: int = 1_000,
+    ) -> dict[str, Any]:
+        """
+        Export deals matching filters, fetching in batches until complete or max_rows is reached.
+
+        Returns dict with deals, total count (if available), and whether results were truncated.
+        """
+        if max_rows <= 0:
+            return {"deals": [], "total": 0, "truncated": False}
+
+        page = 1
+        collected: list[dict[str, Any]] = []
+        total = 0
+        truncated = False
+
+        while True:
+            result = self.list_deals(
+                page=page,
+                page_size=batch_size,
+                symbol=symbol,
+                deal_type=deal_type,
+                date_from=date_from,
+                date_to=date_to,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+
+            if page == 1:
+                total = int(result.get("total") or 0)
+
+            deals = result.get("deals") or []
+            if not deals:
+                break
+
+            remaining = max_rows - len(collected)
+            if remaining <= 0:
+                truncated = True
+                break
+
+            collected.extend(deals[:remaining])
+
+            if len(collected) >= max_rows:
+                truncated = total > max_rows if total else True
+                break
+
+            total_pages = int(result.get("total_pages") or 0)
+            if total_pages and page >= total_pages:
+                break
+
+            page += 1
+
+        return {"deals": collected, "total": total, "truncated": truncated}
+
     def get_by_id(self, deal_id: str) -> dict[str, Any]:
         """Get a single bulk deal by ID."""
         try:

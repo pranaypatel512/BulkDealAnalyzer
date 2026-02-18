@@ -77,6 +77,21 @@ bulkdeal-analyzer/
 - [RELEASE.md](RELEASE.md) - Release process
 - [SECURITY.md](SECURITY.md) - Security policies
 
+**API docs** (when backend is running): Swagger UI at `/docs`, ReDoc at `/redoc` (e.g. `http://localhost:8000/docs`).
+
+**Migrations**: See [supabase/MIGRATIONS.md](supabase/MIGRATIONS.md) for migration list and how to apply with `supabase db push`.
+
+### Verify backend (smoke test)
+
+With the backend running (e.g. `cd backend && uvicorn app.main:app --reload`):
+
+```bash
+./scripts/smoke_test_backend.sh
+# Or: BASE_URL=http://localhost:8000 ./scripts/smoke_test_backend.sh
+```
+
+Without a server (in-process): `cd backend && pytest tests/test_smoke.py -v`
+
 ## Development
 
 ### Getting Started

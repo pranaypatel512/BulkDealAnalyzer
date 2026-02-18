@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 
 class BulkDeal(BaseModel):
@@ -100,6 +100,7 @@ def normalize_header(header: str) -> str:
         'buy/sell': 'deal_type',
         'buy / sell': 'deal_type',
         'quantity traded': 'quantity',
+        'trade price': 'price',
         'trade price/ weighted. avg. price': 'price',
         'trade price / wght. avg. price': 'price',
         'remarks': 'remarks',
@@ -176,7 +177,7 @@ def parse_csv_file(file_path: Path) -> ParseResult:
                 deals.append(deal)
                 valid_rows += 1
 
-            except (ValueError, KeyError, TypeError) as e:
+            except (ValueError, KeyError, TypeError, ValidationError) as e:
                 invalid_rows += 1
                 errors.append(f"Row {row_num}: {str(e)}")
                 continue
@@ -234,7 +235,7 @@ def parse_csv_content(content: str) -> ParseResult:
                 deals.append(deal)
                 valid_rows += 1
 
-            except (ValueError, KeyError, TypeError) as e:
+            except (ValueError, KeyError, TypeError, ValidationError) as e:
                 invalid_rows += 1
                 errors.append(f"Row {row_num}: {str(e)}")
                 continue
