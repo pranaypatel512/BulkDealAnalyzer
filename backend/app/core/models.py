@@ -46,6 +46,7 @@ class UserProfileUpdate(BaseModel):
 
     full_name: str | None = Field(None, max_length=255)
     subscription_tier: str | None = Field(None, pattern=r"^(free|premium|enterprise)$")
+    role: str | None = Field(None, pattern=r"^(user|admin)$")
 
 
 class UserProfileResponse(BaseModel):
@@ -58,6 +59,7 @@ class UserProfileResponse(BaseModel):
     email: str
     full_name: str | None = None
     subscription_tier: str = "free"
+    role: str = "user"
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
@@ -116,3 +118,29 @@ class BulkDealsListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+# =============================================================================
+# Watchlist Models
+# =============================================================================
+
+
+class WatchlistAdd(BaseModel):
+    """Model for adding a symbol to watchlist."""
+
+    symbol: str = Field(..., min_length=1, max_length=20)
+    notes: str | None = Field(None, max_length=2000)
+    alert_on_buy: bool = True
+    alert_on_sell: bool = True
+    min_quantity: int | None = Field(None, gt=0)
+    min_value: float | None = Field(None, ge=0)
+
+
+class WatchlistUpdate(BaseModel):
+    """Model for updating a watchlist item."""
+
+    notes: str | None = Field(None, max_length=2000)
+    alert_on_buy: bool | None = None
+    alert_on_sell: bool | None = None
+    min_quantity: int | None = Field(None, gt=0)
+    min_value: float | None = Field(None, ge=0)

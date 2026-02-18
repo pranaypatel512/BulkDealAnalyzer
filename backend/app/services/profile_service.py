@@ -73,6 +73,7 @@ class ProfileService:
             "email": email,
             "full_name": full_name,
             "subscription_tier": "free",
+            "role": "user",
             "created_at": None,
             "updated_at": None,
         }

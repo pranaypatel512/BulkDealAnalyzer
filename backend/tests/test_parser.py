@@ -152,6 +152,23 @@ class TestParseCSVContent:
         assert result.invalid_rows == 1
         assert len(result.errors) == 1
 
+    def test_parse_csv_content_price_zero_treated_as_invalid(self):
+        """Rows with price 0 are invalid and do not raise; valid rows still parsed."""
+        csv_content = (
+            "Date,Symbol,Security Name,Client Name,Buy/Sell,"
+            "Quantity Traded,Trade Price,Remarks\n"
+            "02-Jan-2026,REL,Reliance,Client A,BUY,10000,2450.50,\n"
+            "02-Jan-2026,TCS,TCS Ltd,Client B,SELL,5000,0,\n"
+            "02-Jan-2026,INFY,Infosys,Client C,BUY,20000,1650.25,\n"
+        )
+        result = parse_csv_content(csv_content)
+        assert result.total_rows == 3
+        assert result.valid_rows == 2
+        assert result.invalid_rows == 1
+        assert len(result.deals) == 2
+        assert any(d.symbol == "REL" for d in result.deals)
+        assert any(d.symbol == "INFY" for d in result.deals)
+
     def test_parse_nse_format_headers(self):
         """Test parsing CSV with NSE format headers (with newlines)."""
         # Simulating NSE format with header variations

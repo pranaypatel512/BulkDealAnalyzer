@@ -4,9 +4,13 @@ Bulk Deals Endpoints
 API endpoints for querying and managing bulk deals data.
 """
 
-from fastapi import APIRouter, Query
+from datetime import date
+
+from fastapi import APIRouter, Body, Query
+from fastapi.responses import Response
 
 from app.core.auth import CurrentUser, OptionalUser
+from app.core.csv_export import deals_to_csv
 from app.core.parser import parse_csv_content
 from app.core.responses import success_response
 from app.services.bulk_deals_service import BulkDealsService
@@ -54,6 +58,44 @@ async def list_bulk_deals(
         sort_order=sort_order,
     )
     return success_response(data=result, message="Bulk deals retrieved")
+
+@router.get("/export-csv")
+async def export_bulk_deals_csv(
+    _user: OptionalUser,
+    symbol: str | None = Query(None, description="Filter by symbol (partial match)"),
+    deal_type: str | None = Query(
+        None, pattern="^(BUY|SELL)$", description="Filter by BUY or SELL",
+    ),
+    date_from: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    date_to: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    sort_by: str = Query("date", description="Sort field"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order"),
+    max_rows: int = Query(10_000, ge=1, le=50_000, description="Max rows to export"),
+):
+    """
+    Export filtered bulk deals as CSV.
+
+    Returns raw CSV (not wrapped in the standard JSON envelope).
+    """
+    service = _get_service()
+    export_result = service.export_deals(
+        symbol=symbol,
+        deal_type=deal_type,
+        date_from=date_from,
+        date_to=date_to,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        max_rows=max_rows,
+    )
+
+    csv_text = deals_to_csv(export_result["deals"])
+    filename = f"bulk-deals-{date.today().isoformat()}.csv"
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "X-Export-Total": str(export_result.get("total") or 0),
+        "X-Export-Truncated": "true" if export_result.get("truncated") else "false",
+    }
+    return Response(content=csv_text, media_type="text/csv; charset=utf-8", headers=headers)
 
 
 @router.get("/stats")
@@ -205,7 +247,7 @@ async def fetch_from_nse(user: CurrentUser):
 
 
 @router.post("/upload-csv")
-async def upload_csv(user: CurrentUser, csv_content: str):
+async def upload_csv(user: CurrentUser, csv_content: str = Body(..., embed=True)):
     """
     Upload CSV content and import deals with deduplication.
 

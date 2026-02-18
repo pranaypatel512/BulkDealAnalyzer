@@ -8,6 +8,7 @@ Uses session-based cookies to authenticate with NSE's API.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 NSE_BASE_URL = "https://www.nseindia.com"
 NSE_BULK_DEALS_API = f"{NSE_BASE_URL}/api/snapshot-capital-market-largedeal"
+# Same API returns BULK_DEALS_DATA, BLOCK_DEALS_DATA; short selling may use mode=short_deals
 
 NSE_HEADERS = {
     "User-Agent": (
@@ -49,6 +51,14 @@ class NSEFetcher:
         return self._client.table("bulk_deals")
 
     @property
+    def block_deals_table(self):
+        return self._client.table("block_deals")
+
+    @property
+    def short_selling_table(self):
+        return self._client.table("short_selling_deals")
+
+    @property
     def history_table(self):
         return self._client.table("fetch_history")
 
@@ -66,6 +76,25 @@ class NSEFetcher:
             logger.warning("Failed to initialize NSE session from homepage")
         return client
 
+    async def _fetch_largedeal_snapshot(
+        self,
+        mode: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Fetch the full snapshot from NSE largedeal API.
+        Returns dict with keys BULK_DEALS_DATA, BLOCK_DEALS_DATA, and possibly SHORT_SELLING_DATA.
+        """
+        client = await self._get_nse_session()
+        try:
+            url = NSE_BULK_DEALS_API
+            if mode:
+                url = f"{url}?mode={mode}"
+            resp = await client.get(url, headers={"Accept": "application/json"})
+            resp.raise_for_status()
+            return resp.json()
+        finally:
+            await client.aclose()
+
     async def fetch_bulk_deals_json(
         self,
         date_from: str | None = None,
@@ -73,67 +102,191 @@ class NSEFetcher:
     ) -> list[dict[str, Any]]:
         """
         Fetch bulk deals from NSE API as JSON.
-
         The NSE snapshot API returns today's bulk deals.
-        For historical data, use the archives endpoint.
         """
-        client = await self._get_nse_session()
-        try:
-            # Try the snapshot API first (today's data)
-            resp = await client.get(
-                NSE_BULK_DEALS_API,
-                headers={"Accept": "application/json"},
-            )
-            resp.raise_for_status()
-            data = resp.json()
+        data = await self._fetch_largedeal_snapshot()
+        bulk_deals = data.get("BULK_DEALS_DATA", [])
+        logger.info("Fetched %d bulk deals from NSE snapshot API", len(bulk_deals))
+        return bulk_deals
 
-            # NSE returns {"BLOCK_DEALS_DATA": [...], "BULK_DEALS_DATA": [...]}
-            bulk_deals = data.get("BULK_DEALS_DATA", [])
-            logger.info("Fetched %d bulk deals from NSE snapshot API", len(bulk_deals))
-            return bulk_deals
-        except httpx.HTTPStatusError as e:
-            logger.error("NSE API HTTP error %s: %s", e.response.status_code, e)
-            raise
-        except Exception as e:
-            logger.error("NSE API error: %s", e)
-            raise
-        finally:
-            await client.aclose()
+    async def fetch_block_deals_json(
+        self,
+        date_from: str | None = None,
+        date_to: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Fetch block deals from NSE API as JSON.
+        Same snapshot endpoint returns BLOCK_DEALS_DATA.
+        """
+        data = await self._fetch_largedeal_snapshot()
+        block_deals = data.get("BLOCK_DEALS_DATA", [])
+        logger.info("Fetched %d block deals from NSE snapshot API", len(block_deals))
+        return block_deals
+
+    async def fetch_short_selling_json(
+        self,
+        date_from: str | None = None,
+        date_to: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Fetch short selling / short deals from NSE API.
+        Tries SHORT_SELLING_DATA from same snapshot, then mode=short_deals if needed.
+        """
+        data = await self._fetch_largedeal_snapshot()
+        short_deals = data.get("SHORT_SELLING_DATA", data.get("SHORT_DEALS_DATA", []))
+        if not short_deals:
+            try:
+                data2 = await self._fetch_largedeal_snapshot(mode="short_deals")
+                short_deals = (
+                    data2.get("SHORT_SELLING_DATA")
+                    or data2.get("SHORT_DEALS_DATA")
+                    or data2.get("data", [])
+                    or []
+                )
+            except Exception as e:
+                logger.debug("NSE short_deals mode fallback: %s", e)
+        logger.info("Fetched %d short selling deals from NSE", len(short_deals))
+        return short_deals
+
+    @staticmethod
+    def _normalize_nse_date(date_str: str) -> str:
+        """Convert date to dd-Mon-yyyy format expected by parser."""
+        date_str = date_str.strip()
+        if not date_str:
+            return date_str
+        try:
+            # Already dd-Mon-yyyy (e.g. 16-Feb-2026)
+            if len(date_str) >= 11 and "-" in date_str and date_str[2] == "-":
+                datetime.strptime(date_str[:11], "%d-%b-%Y")
+                return date_str[:11]
+        except ValueError:
+            pass
+        try:
+            # ISO yyyy-mm-dd
+            dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            return dt.strftime("%d-%b-%Y")
+        except ValueError:
+            pass
+        try:
+            # dd/mm/yyyy
+            dt = datetime.strptime(date_str[:10], "%d/%m/%Y")
+            return dt.strftime("%d-%b-%Y")
+        except ValueError:
+            pass
+        return date_str
+
+    @staticmethod
+    def _get_nse_field(deal: dict[str, Any], *keys: str, default: str = "") -> str:
+        """Get first present key from deal, with optional default."""
+        for key in keys:
+            if key in deal and deal[key] is not None:
+                v = str(deal[key]).strip()
+                if v:
+                    return v
+        return default
+
+    @staticmethod
+    def _get_nse_number(deal: dict[str, Any], *keys: str, default: int | float = 0) -> int | float:
+        """Get first present numeric key from deal."""
+        for key in keys:
+            if key in deal and deal[key] is not None:
+                try:
+                    v = deal[key]
+                    if isinstance(v, (int, float)):
+                        return v
+                    s = str(v).strip().replace(",", "")
+                    return float(s) if "." in s else int(float(s))
+                except (ValueError, TypeError):
+                    pass
+        return default
 
     def _nse_json_to_csv(self, deals: list[dict[str, Any]]) -> str:
         """
         Convert NSE JSON response to CSV format compatible with our parser.
 
-        NSE JSON fields: BD_DT_DATE, BD_SYMBOL, BD_SCRIP_NAME,
-                         BD_CLIENT_NAME, BD_BUY_SELL, BD_QTY_TRD, BD_TP_WATP,
-                         BD_REMARKS
+        Supports multiple NSE response shapes:
+        - BD_* (e.g. BD_DT_DATE, BD_SYMBOL, BD_CLIENT_NAME, BD_BUY_SELL, BD_QTY_TRD, BD_TP_WATP)
+        - camelCase (e.g. date, symbol, clientName, buySell, qty, watp)
+        - name for security name
+        Skips rows missing required fields so parser only sees valid rows.
         """
         if not deals:
             return ""
 
-        lines = [
+        header = (
             "Date,Symbol,Security Name,Client Name,"
             "Buy/Sell,Quantity Traded,Trade Price,Remarks"
-        ]
-        for deal in deals:
-            date_str = deal.get("BD_DT_DATE", deal.get("mTIMESTAMP", ""))
-            symbol = deal.get("BD_SYMBOL", "")
-            security_name = deal.get("BD_SCRIP_NAME", "")
-            client_name = deal.get("BD_CLIENT_NAME", "")
-            buy_sell = deal.get("BD_BUY_SELL", "")
-            quantity = deal.get("BD_QTY_TRD", "0")
-            price = deal.get("BD_TP_WATP", "0")
-            remarks = deal.get("BD_REMARKS", "")
+        )
+        lines = [header]
 
-            # Escape commas in fields
+        for deal in deals:
+            date_str = self._get_nse_field(
+                deal, "BD_DT_DATE", "mTIMESTAMP", "date", "tradeDate",
+            )
+            symbol = self._get_nse_field(deal, "BD_SYMBOL", "symbol", "sym")
+            security_name = self._get_nse_field(
+                deal, "BD_SCRIP_NAME", "name", "securityName", "companyName",
+            )
+            client_name = self._get_nse_field(
+                deal, "BD_CLIENT_NAME", "clientName", "client_name",
+            )
+            buy_sell_raw = self._get_nse_field(
+                deal, "BD_BUY_SELL", "buySell", "deal_type", "buy_sell",
+            )
+            quantity = self._get_nse_number(
+                deal, "BD_QTY_TRD", "qty", "quantity", "quantityTraded",
+                default=0,
+            )
+            price = self._get_nse_number(
+                deal,
+                "BD_TP_WATP",
+                "watp",
+                "price",
+                "tradePrice",
+                "avgPrice",
+                "averagePrice",
+                "WAP",
+                "wap",
+                "lastPrice",
+                "closePrice",
+                default=0.0,
+            )
+            remarks = self._get_nse_field(
+                deal, "BD_REMARKS", "remarks",
+            )
+
+            # Normalize buy/sell to BUY or SELL
+            buy_sell = buy_sell_raw.upper() if buy_sell_raw else ""
+            if buy_sell in ("B", "BUY", "Bought"):
+                buy_sell = "BUY"
+            elif buy_sell in ("S", "SELL", "Sold"):
+                buy_sell = "SELL"
+
+            # Skip rows missing required fields (avoid parser validation errors)
+            if not date_str or not symbol or not client_name or buy_sell not in ("BUY", "SELL"):
+                continue
+            # Require positive quantity and price; skip otherwise so parser never sees invalid rows
+            if not (quantity > 0 and price > 0):
+                continue
+
+            # Normalize date to dd-Mon-yyyy for parser (e.g. 2026-02-16 -> 16-Feb-2026)
+            date_str = self._normalize_nse_date(date_str)
+
             def esc(v: Any) -> str:
                 s = str(v).strip()
-                return f'"{s}"' if "," in s else s
+                return f'"{s}"' if s and "," in s else s
 
             lines.append(
                 f"{esc(date_str)},{esc(symbol)},{esc(security_name)},"
-                f"{esc(client_name)},{esc(buy_sell)},{esc(quantity)},"
-                f"{esc(price)},{esc(remarks)}"
+                f"{esc(client_name)},{esc(buy_sell)},{int(quantity)},"
+                f"{float(price)},{esc(remarks)}"
+            )
+
+        if len(lines) == 1 and deals:
+            # No valid rows; log first deal keys to help debug API shape
+            logger.debug(
+                "NSE API sample keys (no valid rows): %s",
+                list(deals[0].keys()) if deals else [],
             )
         return "\n".join(lines)
 
@@ -141,19 +294,18 @@ class NSEFetcher:
         self,
         date_str: str,
         symbols: list[str],
+        table=None,
     ) -> set[str]:
         """
         Get existing deal keys for dedup.
-
         Key = date|symbol|client_name|deal_type|quantity
         """
         if not symbols:
             return set()
-
+        tbl = table if table is not None else self.deals_table
         try:
             result = (
-                self.deals_table
-                .select("date,symbol,client_name,deal_type,quantity")
+                tbl.select("date,symbol,client_name,deal_type,quantity")
                 .eq("date", date_str)
                 .in_("symbol", symbols)
                 .execute()
@@ -171,18 +323,17 @@ class NSEFetcher:
     def _dedup_deals(
         self,
         deals_data: list[dict[str, Any]],
+        table=None,
     ) -> list[dict[str, Any]]:
-        """Remove deals that already exist in the database."""
+        """Remove deals that already exist in the database (for given table)."""
         if not deals_data:
             return []
-
-        # Group by date for efficient querying
+        tbl = table if table is not None else self.deals_table
         dates = {d["date"] for d in deals_data}
         symbols = list({d["symbol"] for d in deals_data})
-
         existing_keys: set[str] = set()
         for date_str in dates:
-            existing_keys |= self._get_existing_keys(date_str, symbols)
+            existing_keys |= self._get_existing_keys(date_str, symbols, table=tbl)
 
         new_deals = []
         for deal in deals_data:
@@ -361,6 +512,154 @@ class NSEFetcher:
                 "errors": [str(e)],
                 "message": f"Failed to fetch from NSE: {e!s}",
             }
+
+    async def _fetch_and_import_for_table(
+        self,
+        table,
+        fetch_method,
+        user_id: str | None,
+        date_from: str | None,
+        date_to: str | None,
+        source_label: str,
+    ) -> dict[str, Any]:
+        """Common flow: fetch JSON, parse, dedup, insert into given table."""
+        try:
+            raw_deals = await fetch_method(date_from=date_from, date_to=date_to)
+            if not raw_deals:
+                self._record_fetch(
+                    source=source_label,
+                    status="success",
+                    deals_fetched=0,
+                    date_from=date_from,
+                    date_to=date_to,
+                )
+                return {
+                    "status": "success",
+                    "fetched": 0,
+                    "imported": 0,
+                    "skipped": 0,
+                    "errors": [],
+                    "message": f"No {source_label} found for the requested period",
+                }
+            csv_content = self._nse_json_to_csv(raw_deals)
+            parse_result = parse_csv_content(csv_content)
+            if not parse_result.deals:
+                self._record_fetch(
+                    source=source_label,
+                    status="success",
+                    deals_fetched=len(raw_deals),
+                    deals_imported=0,
+                    error_message="; ".join(parse_result.errors) if parse_result.errors else None,
+                    date_from=date_from,
+                    date_to=date_to,
+                )
+                return {
+                    "status": "success",
+                    "fetched": len(raw_deals),
+                    "imported": 0,
+                    "skipped": 0,
+                    "errors": parse_result.errors,
+                    "message": "Fetched data but no valid deals to import",
+                }
+            deals_data = [
+                {
+                    "date": deal.date.strftime("%Y-%m-%d"),
+                    "symbol": deal.symbol,
+                    "security_name": deal.security_name,
+                    "client_name": deal.client_name,
+                    "deal_type": deal.deal_type,
+                    "quantity": deal.quantity,
+                    "price": float(deal.price),
+                    "remarks": deal.remarks,
+                    **({"user_id": user_id} if user_id else {}),
+                }
+                for deal in parse_result.deals
+            ]
+            new_deals = self._dedup_deals(deals_data, table=table)
+            skipped = len(deals_data) - len(new_deals)
+            imported = 0
+            if new_deals:
+                try:
+                    result = table.insert(new_deals).execute()
+                    imported = len(result.data) if result and result.data else 0
+                except Exception as e:
+                    logger.error("Bulk insert failed: %s", e)
+                    self._record_fetch(
+                        source=source_label,
+                        status="error",
+                        deals_fetched=len(raw_deals),
+                        error_message=str(e),
+                        date_from=date_from,
+                        date_to=date_to,
+                    )
+                    raise DatabaseError(f"Failed to import deals: {e!s}") from e
+            self._record_fetch(
+                source=source_label,
+                status="success",
+                deals_fetched=len(raw_deals),
+                deals_imported=imported,
+                deals_skipped=skipped,
+                date_from=date_from,
+                date_to=date_to,
+            )
+            return {
+                "status": "success",
+                "fetched": len(raw_deals),
+                "imported": imported,
+                "skipped": skipped,
+                "errors": parse_result.errors,
+                "message": f"Imported {imported} deals ({skipped} duplicates skipped)",
+            }
+        except DatabaseError:
+            raise
+        except Exception as e:
+            self._record_fetch(
+                source=source_label,
+                status="error",
+                error_message=str(e),
+                date_from=date_from,
+                date_to=date_to,
+            )
+            return {
+                "status": "error",
+                "fetched": 0,
+                "imported": 0,
+                "skipped": 0,
+                "errors": [str(e)],
+                "message": f"Failed to fetch from NSE: {e!s}",
+            }
+
+    async def fetch_and_import_block_deals(
+        self,
+        user_id: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+    ) -> dict[str, Any]:
+        """Fetch block deals from NSE and import into block_deals table."""
+        return await self._fetch_and_import_for_table(
+            table=self.block_deals_table,
+            fetch_method=self.fetch_block_deals_json,
+            user_id=user_id,
+            date_from=date_from,
+            date_to=date_to,
+            source_label="nse_block_deals",
+        )
+
+    async def fetch_and_import_short_selling(
+        self,
+        user_id: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+    ) -> dict[str, Any]:
+        """Fetch short selling data from NSE and import into short_selling_deals table."""
+        return await self._fetch_and_import_for_table(
+            table=self.short_selling_table,
+            fetch_method=self.fetch_short_selling_json,
+            user_id=user_id,
+            date_from=date_from,
+            date_to=date_to,
+            source_label="nse_short_selling",
+        )
 
     def import_from_csv(
         self,

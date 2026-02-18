@@ -54,17 +54,24 @@ async function apiRequest<T>(
 
   try {
     const response = await fetch(url, config);
-    const data: ApiResponse<T> = await response.json();
+    const data = await response.json() as Record<string, unknown>;
 
     if (!response.ok) {
+      const message =
+        (typeof data.detail === 'string' && data.detail) ||
+        (Array.isArray(data.detail) && data.detail[0] && typeof (data.detail[0] as { msg?: string }).msg === 'string'
+          ? (data.detail[0] as { msg: string }).msg
+          : null) ||
+        (data as unknown as ApiResponse<T>).message ||
+        'An error occurred';
       throw new ApiError(
-        data.message || 'An error occurred',
+        message,
         response.status,
-        data.errors
+        (data as unknown as ApiResponse<T>).errors
       );
     }
 
-    return data.data as T;
+    return (data as unknown as ApiResponse<T>).data as T;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;

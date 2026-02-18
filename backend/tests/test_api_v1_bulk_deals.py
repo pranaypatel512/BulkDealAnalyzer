@@ -260,3 +260,27 @@ def test_price_distribution():
     data = response.json()
     assert data["success"] is True
     assert len(data["data"]) == 3
+
+
+# ---- GET /bulk-deals/export-csv ----
+
+
+def test_export_bulk_deals_csv():
+    """GET /bulk-deals/export-csv returns raw CSV."""
+    with patch("app.api.v1.bulk_deals._get_service") as mock_svc_factory:
+        mock_svc = MagicMock()
+        mock_svc.export_deals.return_value = {
+            "deals": [SAMPLE_DEAL],
+            "total": 1,
+            "truncated": False,
+        }
+        mock_svc_factory.return_value = mock_svc
+
+        response = client.get("/api/v1/bulk-deals/export-csv?symbol=REL&max_rows=10")
+
+    assert response.status_code == 200
+    assert "text/csv" in response.headers.get("content-type", "")
+    assert response.headers.get("x-export-total") == "1"
+    assert response.headers.get("x-export-truncated") == "false"
+    assert response.text.splitlines()[0].startswith("Date,Symbol,")
+    assert "RELIANCE" in response.text

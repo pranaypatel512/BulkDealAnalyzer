@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function DealsRedirectPage() {
+export default function NseRedirectPage() {
   const router = useRouter();
   useEffect(() => {
     router.replace('/dashboard/analytics');

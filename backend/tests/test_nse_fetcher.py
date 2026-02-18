@@ -70,6 +70,38 @@ class TestNSEJsonToCsv:
         csv = mock_supabase._nse_json_to_csv(deals)
         assert '"XYZ Securities, Private Ltd"' in csv
 
+    def test_skips_invalid_rows_empty_fields(self, mock_supabase):
+        """Rows with empty date/symbol/client_name or zero qty/price are skipped."""
+        deals = [
+            {"BD_DT_DATE": "", "BD_SYMBOL": "", "BD_CLIENT_NAME": "", "BD_BUY_SELL": "BUY", "BD_QTY_TRD": 0, "BD_TP_WATP": 0},
+            {"BD_DT_DATE": "16-Feb-2026", "BD_SYMBOL": "REL", "BD_CLIENT_NAME": "ABC", "BD_BUY_SELL": "BUY", "BD_QTY_TRD": 100, "BD_TP_WATP": 2500.0},
+        ]
+        csv = mock_supabase._nse_json_to_csv(deals)
+        lines = csv.strip().split("\n")
+        assert len(lines) == 2  # header + 1 valid row
+        assert "REL" in lines[1]
+
+    def test_camelCase_field_names(self, mock_supabase):
+        """Supports camelCase NSE API fields (date, symbol, clientName, buySell, qty, watp)."""
+        deals = [
+            {
+                "date": "2026-02-16",
+                "symbol": "INFY",
+                "name": "Infosys",
+                "clientName": "MF Client",
+                "buySell": "Buy",
+                "qty": 50000,
+                "watp": 1650.50,
+                "remarks": "",
+            }
+        ]
+        csv = mock_supabase._nse_json_to_csv(deals)
+        lines = csv.strip().split("\n")
+        assert len(lines) == 2
+        assert "INFY" in lines[1]
+        assert "BUY" in lines[1]
+        assert "16-Feb-2026" in lines[1]
+
 
 class TestDedup:
     """Test deduplication logic."""
