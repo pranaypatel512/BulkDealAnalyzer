@@ -186,6 +186,39 @@ class NSEFetcher:
         return default
 
     @staticmethod
+    def _normalize_key(key: str) -> str:
+        """Normalize dict keys for case/format-insensitive matching."""
+        return "".join(ch for ch in key.lower() if ch.isalnum())
+
+    @classmethod
+    def _get_nse_field_ci(
+        cls,
+        deal: dict[str, Any],
+        *normalized_keys: str,
+        default: str = "",
+    ) -> str:
+        """
+        Case/format-insensitive field lookup.
+
+        Useful when NSE response keys vary by endpoint/version (e.g. SYMBOL vs symbol).
+        `normalized_keys` should be pre-normalized (lowercase, alnum only).
+        """
+        if not deal:
+            return default
+        lookup = {cls._normalize_key(k): k for k in deal.keys()}
+        for nk in normalized_keys:
+            k = lookup.get(nk)
+            if not k:
+                continue
+            v = deal.get(k)
+            if v is None:
+                continue
+            s = str(v).strip()
+            if s:
+                return s
+        return default
+
+    @staticmethod
     def _get_nse_number(deal: dict[str, Any], *keys: str, default: int | float = 0) -> int | float:
         """Get first present numeric key from deal."""
         for key in keys:
@@ -198,6 +231,33 @@ class NSEFetcher:
                     return float(s) if "." in s else int(float(s))
                 except (ValueError, TypeError):
                     pass
+        return default
+
+    @classmethod
+    def _get_nse_number_ci(
+        cls,
+        deal: dict[str, Any],
+        *normalized_keys: str,
+        default: int | float = 0,
+    ) -> int | float:
+        """Case/format-insensitive numeric lookup for variable NSE key names."""
+        if not deal:
+            return default
+        lookup = {cls._normalize_key(k): k for k in deal.keys()}
+        for nk in normalized_keys:
+            k = lookup.get(nk)
+            if not k:
+                continue
+            v = deal.get(k)
+            if v is None:
+                continue
+            try:
+                if isinstance(v, (int, float)):
+                    return v
+                s = str(v).strip().replace(",", "")
+                return float(s) if "." in s else int(float(s))
+            except (ValueError, TypeError):
+                continue
         return default
 
     def _nse_json_to_csv(self, deals: list[dict[str, Any]]) -> str:
@@ -223,20 +283,80 @@ class NSEFetcher:
             date_str = self._get_nse_field(
                 deal, "BD_DT_DATE", "mTIMESTAMP", "date", "tradeDate",
             )
+            if not date_str:
+                date_str = self._get_nse_field_ci(
+                    deal,
+                    "date",
+                    "tradedate",
+                    "tradedt",
+                    "trddate",
+                    "bddtdate",
+                    "mtimestamp",
+                    default="",
+                )
             symbol = self._get_nse_field(deal, "BD_SYMBOL", "symbol", "sym")
+            if not symbol:
+                symbol = self._get_nse_field_ci(
+                    deal,
+                    "symbol",
+                    "sym",
+                    "tradingsymbol",
+                    "securitysymbol",
+                    default="",
+                )
             security_name = self._get_nse_field(
                 deal, "BD_SCRIP_NAME", "name", "securityName", "companyName",
             )
+            if not security_name:
+                security_name = self._get_nse_field_ci(
+                    deal,
+                    "securityname",
+                    "companyname",
+                    "scripname",
+                    "security",
+                    default="",
+                )
             client_name = self._get_nse_field(
                 deal, "BD_CLIENT_NAME", "clientName", "client_name",
             )
+            if not client_name:
+                client_name = self._get_nse_field_ci(
+                    deal,
+                    "clientname",
+                    "client",
+                    "participantname",
+                    "participant",
+                    "membername",
+                    "member",
+                    default="",
+                )
             buy_sell_raw = self._get_nse_field(
                 deal, "BD_BUY_SELL", "buySell", "deal_type", "buy_sell",
             )
+            if not buy_sell_raw:
+                buy_sell_raw = self._get_nse_field_ci(
+                    deal,
+                    "buysell",
+                    "buyorsell",
+                    "dealtype",
+                    "tradetype",
+                    default="",
+                )
             quantity = self._get_nse_number(
                 deal, "BD_QTY_TRD", "qty", "quantity", "quantityTraded",
                 default=0,
             )
+            if not quantity:
+                quantity = self._get_nse_number_ci(
+                    deal,
+                    "qty",
+                    "quantity",
+                    "quantitytraded",
+                    "qtytrd",
+                    "bdqtytrd",
+                    "shortqty",
+                    default=0,
+                )
             price = self._get_nse_number(
                 deal,
                 "BD_TP_WATP",
@@ -251,15 +371,28 @@ class NSEFetcher:
                 "closePrice",
                 default=0.0,
             )
+            if not price:
+                price = self._get_nse_number_ci(
+                    deal,
+                    "price",
+                    "tradeprice",
+                    "watp",
+                    "wap",
+                    "avgprice",
+                    "averageprice",
+                    "lastprice",
+                    "closeprice",
+                    default=0.0,
+                )
             remarks = self._get_nse_field(
                 deal, "BD_REMARKS", "remarks",
             )
 
             # Normalize buy/sell to BUY or SELL
             buy_sell = buy_sell_raw.upper() if buy_sell_raw else ""
-            if buy_sell in ("B", "BUY", "Bought"):
+            if buy_sell in ("B", "BUY", "BOUGHT"):
                 buy_sell = "BUY"
-            elif buy_sell in ("S", "SELL", "Sold"):
+            elif buy_sell in ("S", "SELL", "SOLD"):
                 buy_sell = "SELL"
 
             # Skip rows missing required fields (avoid parser validation errors)
