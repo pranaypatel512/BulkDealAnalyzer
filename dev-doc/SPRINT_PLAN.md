@@ -25,7 +25,7 @@
 **Sprint 6**: ✅ COMPLETE  
 - Export CSV loading state, API docs in README, smoke tests (pytest + script), watchlist migration idempotent, Deal type filter on Analytics
 
-**Next**: Sprint 7 – Wrap up E2E PR (#38) and move into Sprint 8 (Admin Module)
+**Next**: Sprint 8 – Admin Module (#39 done via PR #43; #40–#42 open)
 
 ---
 
@@ -96,30 +96,30 @@ Complete foundation setup and basic backend/frontend structure
 
 ---
 
-## Sprint 7: Enhancements & Next Features (Current)
+## Sprint 7: Enhancements & Next Features — COMPLETE
 
 ### Goal
 Add small enhancements and prepare for larger backlog items.
 
 ### Tasks
 - [x] Document smoke test and migrations in README (scripts/smoke_test_backend.sh, pytest test_smoke.py, supabase/MIGRATIONS.md)
-- [ ] E2E test (Playwright smoke) (PR #38 open): home loads, Sign In → /login, /dashboard → /login when unauthenticated
+- [x] E2E test (Playwright smoke) – merged in PR #38
 - [x] NSE short-selling response keys tune-up: handle key variants + normalize Bought/Sold → BUY/SELL (merged in PR #36)
 - [ ] Decide when to run Playwright in CI (optional): manual/local only vs add a GitHub Action job
 - [ ] Other PRD items (as prioritized): AI Analyzer, admin panel, subscription tiers
 
 ---
 
-## Sprint 8: Admin Module (Planned)
+## Sprint 8: Admin Module (Current)
 
 ### Goal
 Admin can manage system and users (basic back-office).
 
 ### Tasks
-- [ ] Define admin roles/permissions (Supabase roles/claims) and RLS strategy
-- [ ] Backend admin endpoints: user management, data management, system settings
-- [ ] Frontend admin area (route group) with basic dashboard + tables
-- [ ] Audit logging for admin actions (who/what/when)
+- [x] **#39** Admin roles and RLS – backend `get_current_admin_user`, GET /admin/status, ADMIN_SETUP.md (PR #43)
+- [ ] **#40** Backend admin API: user management, data management, system settings
+- [ ] **#41** Frontend admin area (route group) with basic dashboard + tables
+- [ ] **#42** Admin audit logging (table + record actions + optional UI)
 
 ---
 
@@ -255,11 +255,11 @@ Based on `dev-doc/BRANCH_STRATEGY.md`:
    - Move card: Backlog → TODO → In Progress → Review → Testing → Done
    - Close issue when moved to "Done"
 
-## Next Steps (Sprint 7 or ad-hoc)
+## Next Steps (Sprint 8 or ad-hoc)
 
 1. **Apply migrations** (if not done): `supabase db push`. See [supabase/MIGRATIONS.md](../supabase/MIGRATIONS.md).
 2. **Verify backend**: Run `./scripts/smoke_test_backend.sh` with backend up, or `cd backend && pytest tests/test_smoke.py -v`.
-3. **Sprint 7**: Merge PR #38 (Playwright E2E smoke) and (optional) decide CI strategy for E2E.
-4. **Sprint 8+**: Next pick — Admin Module (Sprint 8) or AI Analyzer (Sprint 9), then Monetization (Sprint 10).
-5. **Optional**: GitHub Project board and Sprint 7 issues.
+3. **Sprint 8**: Continue with #40 (backend admin API), then #41 (frontend admin), then #42 (audit log).
+4. **Set first admin**: See [dev-doc/ADMIN_SETUP.md](ADMIN_SETUP.md) to set a user as admin in Supabase.
+5. **Optional**: GitHub Project board – move #40–#42 to In Progress as you pick them.
 
