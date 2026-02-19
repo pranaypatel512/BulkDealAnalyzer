@@ -11,7 +11,7 @@ from typing import Annotated, Any
 from fastapi import Depends, Header
 
 from app.core.config import get_settings
-from app.core.exceptions import AuthenticationError
+from app.core.exceptions import AuthenticationError, AuthorizationError
 
 
 def _get_supabase_client():
@@ -81,6 +81,24 @@ async def get_optional_user(
         return None
 
 
+async def get_current_admin_user(user: Any = Depends(get_current_user)) -> Any:
+    """
+    Require the current user to have admin role (user_profiles.role = 'admin').
+
+    Use as a FastAPI dependency for admin-only routes.
+    Raises AuthorizationError (403) if the user is not an admin.
+    """
+    from app.services.profile_service import ProfileService
+
+    service = ProfileService()
+    profile = service.get_by_user_id(str(user.id))
+    role = (profile or {}).get("role", "user")
+    if role != "admin":
+        raise AuthorizationError("Admin access required")
+    return user
+
+
 # Type aliases for cleaner dependency injection
 CurrentUser = Annotated[Any, Depends(get_current_user)]
 OptionalUser = Annotated[Any | None, Depends(get_optional_user)]
+CurrentAdminUser = Annotated[Any, Depends(get_current_admin_user)]
